@@ -65,7 +65,7 @@ void Transmit_String(char *str) // lets send "abc"
 {
     while (*str != 0) // while we're not reached the end of the string
     {
-        Transmit_Char(*str)
+        Transmit_Char(*str);
         str++; // going to next character 
     }
 }

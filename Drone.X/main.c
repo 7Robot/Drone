@@ -31,7 +31,7 @@ int main(void) {
             LED1 = !LED1;
             Transmit_Char(c);
             if (c == 'l') {
-                for (j = 0; j< 100; j++) {
+                for (j = 0; j< 101; j++) {
                     do { i++; } while (i); }
                 LED1 = !LED1;
             } else if (c == 't') {

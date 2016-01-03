@@ -20,13 +20,13 @@
 *.hex
 *.elf
 *.o
-#*.xml
-#*.bash
-#*.mk
+*.xml
+*.bash
+*.mk
 *genesis.properties
 
 # MPLAB-X folders
-#nbproject/
+nbproject/
 build/
 dist/
 

@@ -13,18 +13,22 @@
 *.obj
 *.o
 *.sdb
-*.obj.dmp
+*.obj
+*.dmp
 *.map
 # ajout pepino :
 *.hex
 *.elf
-*.o.d
+*.o
+*.xml
+*.bash
+#*.mk
 *genesis.properties
 
 # MPLAB-X folders
-#nbproject
-#build
-#dist
+nbproject/
+build/
+dist/
 
 # Sublime text
 *.sublime-project

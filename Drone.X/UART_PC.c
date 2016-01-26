@@ -4,15 +4,15 @@
 //#include <libpic30.h>
 #include <uart.h>
 
-volatile u8 TX_Buff[UART_SIZE_BUFF];
-volatile u16 i_TX_Buff = 0;
-volatile u8 RX_Buff[UART_SIZE_BUFF];
-volatile u16 i_RX_Buff = 0;
+volatile u8 TX_PC_Buff[UART_PC_SIZE_BUFF];
+volatile u16 i_TX_PC_Buff = 0;
+volatile u8 RX_PC_Buff[UART_PC_SIZE_BUFF];
+volatile u16 i_RX_PC_Buff = 0;
 
 
 void UART_PC_Init(void)
 {
-    u8 i;
+    
     OpenUART1(UART_EN & UART_IDLE_CON & UART_IrDA_DISABLE & UART_MODE_FLOW
         & UART_UEN_00 & UART_DIS_WAKE & UART_DIS_LOOPBACK
         & UART_DIS_ABAUD & UART_UXRX_IDLE_ONE & UART_BRGH_SIXTEEN
@@ -28,10 +28,9 @@ void UART_PC_Init(void)
     
     IFS0bits.U1TXIF = 1;    // init le flag 
     
-        //Remapage uart 1
+    //Remapage uart 1
     _U1RXR = 24;
     _RP23R = 0b0011;  // RP23 = U1TX (p.167)
-    do { i++; } while (i);
     
     
     
@@ -43,29 +42,37 @@ void __attribute__((interrupt, auto_psv)) _U1TXInterrupt(void) {
     static u16 i_TX_Transmit = 0;
 
     IFS0bits.U1TXIF = 0;
-    U1TXREG = TX_Buff[i_TX_Transmit];
+    U1TXREG = TX_PC_Buff[i_TX_Transmit];
     i_TX_Transmit++;
-    if (i_TX_Transmit == UART_SIZE_BUFF)
+    if (i_TX_Transmit == UART_PC_SIZE_BUFF)
         i_TX_Transmit = 0;
 
-    if (i_TX_Transmit == i_TX_Buff) // si on a tout transmit, on s'arrete
+    if (i_TX_Transmit == i_TX_PC_Buff) // si on a tout transmit, on s'arrete
         IEC0bits.U1TXIE = 0;
 
 }
 
 void __attribute__((interrupt, auto_psv)) _U1RXInterrupt(void) {
-    RX_Buff[i_RX_Buff] = U1RXREG;
-    i_RX_Buff++;
-    if (i_RX_Buff == UART_SIZE_BUFF)
-        i_RX_Buff = 0;
+    RX_PC_Buff[i_RX_PC_Buff] = U1RXREG;
+    i_RX_PC_Buff++;
+    if (i_RX_PC_Buff == UART_PC_SIZE_BUFF)
+        i_RX_PC_Buff = 0;
     IFS0bits.U1RXIF = 0;
 }
 
+u8 Is_TX_Empty(void)
+{
+    return !IEC0bits.U1TXIE;
+}
+
+/*
 void Transmit_String(char *str) // lets send "abc"
 {
     while (*str != 0) // while we're not reached the end of the string
     {
         Transmit_Char(*str);
+        //if (*str == '\n')
+          //  Transmit_Char('\r');
         str++; // going to next character 
     }
 }
@@ -74,31 +81,61 @@ void Transmit_String(char *str) // lets send "abc"
 // mais ne semble pas correspondre à la norme oO
 int	puts(const char *symbol)
 {
-    Transmit_Char(*symbol);
-    return 0;
+    //Transmit_Char(*symbol);
+    Transmit_String(symbol);
+    Transmit_Char('a');
+    Transmit_Char('\n');
+    return 1;
+}
+
+int putchar (int c)
+{
+    u8 car = c & 0xFF;
+    Transmit_Char(car);
+    Transmit_Char('b');
+    return c;
+}
+*/
+int write(int handle, void *buffer, unsigned int len)
+{
+    unsigned int i;
+    char *buff = buffer;
+ //   if (handle == 0) {
+        for (i = 0; i < len; i ++) {
+            Transmit_Char(*buff);
+            buff ++;
+        }
+ //   }
+    
+    //Transmit_Char('c');
+    return len;
 }
 
 void Transmit_Char(char symbol) {
 
-    u8 i = i_TX_Buff;
-    TX_Buff[i] = symbol;
+    u8 i = i_TX_PC_Buff;
+    TX_PC_Buff[i] = symbol;
     i++;
-    if (i == UART_SIZE_BUFF) {
+    if (i == UART_PC_SIZE_BUFF) {
         i = 0;
     }
-    i_TX_Buff = i;
+    i_TX_PC_Buff = i;
     IEC0bits.U1TXIE = 1;
-    
 }
 
+void test_transmit(void)
+{
+    u8 i = i_TX_PC_Buff;
+    printf ("%d\n", i);
+}
 
 //uint8_t Get_Uart(char *c) {
 //    static uint16_t i_RX = 0;
 //
-//    if (i_RX != i_RX_Buff) { // si il y a qq chose dans le buffer
-//        *c = RX_Buff[i_RX];
+//    if (i_RX != i_RX_PC_Buff) { // si il y a qq chose dans le buffer
+//        *c = RX_PC_Buff[i_RX];
 //        i_RX++;
-//        if (i_RX == UART_SIZE_BUFF)
+//        if (i_RX == UART_PC_SIZE_BUFF)
 //            i_RX = 0;
 //        return 1;
 //    } else {
@@ -110,10 +147,10 @@ void Transmit_Char(char symbol) {
 u8 Get_Uart(char *c) {
     static u16 i_RX = 0;
 
-    if (i_RX != i_RX_Buff) { // si il y a qq chose dans le buffer
-        *c = RX_Buff[i_RX];
+    if (i_RX != i_RX_PC_Buff) { // si il y a qq chose dans le buffer
+        *c = RX_PC_Buff[i_RX];
         i_RX++;
-        if (i_RX == UART_SIZE_BUFF)
+        if (i_RX == UART_PC_SIZE_BUFF)
             i_RX = 0;
         return 1;
     } else {

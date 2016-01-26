@@ -45,17 +45,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c
+SOURCEFILES_QUOTED_IF_SPACED=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c GPS.c SPI.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/Config_bits.o.d ${OBJECTDIR}/interrupts.o.d ${OBJECTDIR}/traps.o.d ${OBJECTDIR}/Timer_ms.o.d ${OBJECTDIR}/Init_Clk.o.d ${OBJECTDIR}/UART_PC.o.d ${OBJECTDIR}/ADC.o.d ${OBJECTDIR}/I2C.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o ${OBJECTDIR}/GPS.o ${OBJECTDIR}/SPI.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/Config_bits.o.d ${OBJECTDIR}/interrupts.o.d ${OBJECTDIR}/traps.o.d ${OBJECTDIR}/Timer_ms.o.d ${OBJECTDIR}/Init_Clk.o.d ${OBJECTDIR}/UART_PC.o.d ${OBJECTDIR}/ADC.o.d ${OBJECTDIR}/I2C.o.d ${OBJECTDIR}/GPS.o.d ${OBJECTDIR}/SPI.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o
+OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o ${OBJECTDIR}/GPS.o ${OBJECTDIR}/SPI.o
 
 # Source Files
-SOURCEFILES=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c
+SOURCEFILES=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c GPS.c SPI.c
 
 
 CFLAGS=
@@ -145,6 +145,20 @@ ${OBJECTDIR}/I2C.o: I2C.c  nbproject/Makefile-${CND_CONF}.mk
 	${MP_CC} $(MP_EXTRA_CC_PRE)  I2C.c  -o ${OBJECTDIR}/I2C.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/I2C.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/I2C.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
+${OBJECTDIR}/GPS.o: GPS.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/GPS.o.d 
+	@${RM} ${OBJECTDIR}/GPS.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  GPS.c  -o ${OBJECTDIR}/GPS.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/GPS.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/GPS.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/SPI.o: SPI.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/SPI.o.d 
+	@${RM} ${OBJECTDIR}/SPI.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  SPI.c  -o ${OBJECTDIR}/SPI.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/SPI.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/SPI.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
 else
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
@@ -208,6 +222,20 @@ ${OBJECTDIR}/I2C.o: I2C.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/I2C.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  I2C.c  -o ${OBJECTDIR}/I2C.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/I2C.o.d"        -g -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/I2C.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/GPS.o: GPS.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/GPS.o.d 
+	@${RM} ${OBJECTDIR}/GPS.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  GPS.c  -o ${OBJECTDIR}/GPS.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/GPS.o.d"        -g -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/GPS.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/SPI.o: SPI.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/SPI.o.d 
+	@${RM} ${OBJECTDIR}/SPI.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  SPI.c  -o ${OBJECTDIR}/SPI.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/SPI.o.d"        -g -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
+	@${FIXDEPS} "${OBJECTDIR}/SPI.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif
 

@@ -34,7 +34,7 @@ void Init_Clk(void)
     while (OSCCONbits.OSWEN);       // attend la fin du changement
     while (!OSCCONbits.LOCK);       // attente que la PLL soit lockée sur se nouvelle configuration.
     
-
+    i = 0;
     do { i++; } while (i);
     
     

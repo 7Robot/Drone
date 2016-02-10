@@ -39,7 +39,7 @@ int main(void) {
     ON_OFF_GPS = 0;
     ON_OFF_GPS_T = 0;   // active la sortie ON_OFF du GPS
     Delay_ms(50);
-    //UART_GPS_Init();
+    UART_GPS_Init();
     
     
     Delay_ms(500);
@@ -52,8 +52,6 @@ int main(void) {
                 for (j = 0; j< 101; j++) {
                     do { i++; } while (i); }
                 LED1 = !LED1;
-            } else if (c == 't') {
-                printf("toto %d\n", 0);
             } else if (c == '5') {
                 i = ADC_Convert(ADC_CHAN_5V);
                 printf("5V = %d 0x%04X\n", i, i);
@@ -69,7 +67,7 @@ int main(void) {
             } else if (c == 'e') {
                 Alti_Read_EEPROM();
             } 
-            /*else if (c == 'o') {
+            else if (c == 'o') {
                 GPS_Send_Off();
             } else if (c == 'g') {
                 GPS_Send_On_Pin();
@@ -77,19 +75,35 @@ int main(void) {
                 Get_Last_GPS_Messages();
             }  else if (c == 'q') {
                 GPS_Querry_Message();
-            } */
-            
+            } else if (c == 'f') {
+                GPS_Go_Fast();
+            } else if (c == 's') {
+                GPS_Go_Slow();
+            } else if (c == 't') {
+                GPS_try_baudrates();
+            } 
+            /*
             else if (c == 'r') {
                 RF_Reset();
+            } else if (c == 'R') {
+                RF_Read_All_Reg();
             } else if (c == 's') {
-                RF_Try();
-            }
+                RF_ON();
+            } else if (c == 'S') {
+                RF_Send_Packet();
+            }  else if (c == 'W') {
+                RF_Wait_For_Packet();
+            }   else if (c == '?') {
+                printf("RF Stat : 0x%02X\n", RF_Get_Status());
+                printf("MODEM Stat 1 : 0x%02X\n", RF_Read_Reg(CC1120_MODEM_STATUS1));
+                printf("MODEM Stat 0 : 0x%02X\n", RF_Read_Reg(CC1120_MODEM_STATUS1));
+            } 
+            */
             
         }
         if (Mode_Urgence) {
-            NRST_GPS = 0;
+            GPS_Send_Off();
             while (1) {
-                LED1 = !LED1;
             }
         }
         

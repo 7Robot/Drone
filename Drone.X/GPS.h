@@ -13,9 +13,13 @@
 //#define BAUDRATEGPS 38400
 //#define BAUDRATEGPS 19200
 //#define BAUDRATEGPS 9600
+//#define BAUDRATEGPS 4600
+
+#define BAUDRATEGPS2 115200
 #define BAUDRATEGPS 4800
 
 #define BRGBAUDRATEGPS (((FCY / BAUDRATEGPS) / 16) - 1)
+#define BRGBAUDRATEGPS2 (((FCY / BAUDRATEGPS2) / 16) - 1)
 
 #define UART_GPS_SIZE_BUFF 200
 
@@ -23,14 +27,21 @@
 // TX du GPS = RC3  = RP19
 
 void UART_GPS_Init(void);
+void Set_GPS_BaudRate_Slow (void);
+void Set_GPS_BaudRate_Fast (void);
+
 u8 Get_Uart_GPS(char *c);
 
 void GPS_Transmit_String(char *str);
+void GPS_Transmit_NMEA_Command(u8 *str);
 void GPS_Transmit_Char(char symbol);
 //
 void GPS_Send_Off(void);
 void GPS_Send_On_Pin(void);
 void Get_Last_GPS_Messages(void);
 void GPS_Querry_Message(void);
+void GPS_Go_Fast(void);
+void GPS_Go_Slow(void);
+void GPS_try_baudrates (void);
 
 #endif

@@ -7,5 +7,5 @@ void Timer_Ms_Init(void);
 void Delay_ms (u32 Delay_Time);
 
 extern volatile u32 Maxtime;
-
+extern volatile u32 Compteur_ms_1;
 #endif

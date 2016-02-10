@@ -5,7 +5,7 @@
 
 volatile u32 Maxtime = 0;
 volatile u32 Delay_Var = 0;
-
+volatile u32 Compteur_ms_1 = 0;
 
 void Timer_Ms_Init(void)
 {
@@ -37,6 +37,8 @@ void __attribute__((interrupt,auto_psv)) _T1Interrupt(void)
     
     if (Delay_Var)
         Delay_Var--;
+    
+    Compteur_ms_1 ++;
     
     if (ADC_Convert(ADC_CHAN_5V) < 640) {       // 620 = 4V 
         Mode_Urgence = 1;

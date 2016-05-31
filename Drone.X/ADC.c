@@ -1,16 +1,16 @@
 
 #include "main.h"
 
+volatile float V_5V = 5.0;
+volatile float V_Vbat = 5.0;
 
+u8 Last_ADC_Convert = ADC_CHAN_VBAT;
+//u8 Error_ADC = 0; // pour débug
 
 void ADC_Init(void)
 {
-
     //Configuration du convertisseur Analog to Digital (ADC) du dspic33f
     //Cf page 286 dspic33f Data Sheet
-    
-    
-    
     //AD1CON1 Configuration
     AD1CON1bits.ADON = 0;    //Eteindre A/D converter pour la configuration
     AD1CON1bits.FORM = 0;    //Configure le format de la sortie de l'ADC ( 3=signed float, 2=unsigned float, 1=signed integer, 0=unsigned integer
@@ -33,8 +33,6 @@ void ADC_Init(void)
     AD1CHS0bits.CH0SA = ADC_CHAN_VBAT;
     AD1CHS0bits.CH0NA = 0;	// Choix du (-) de la mesure pour le channel CH0 (0 = Masse interne pic)
 
-   
-
     //Configuration des pins analogiques
     AD1PCFGL = 0xFFFF;   //Met tous les ports AN en Digital Input
     // mets les 2 entrés intéressantes en analogique
@@ -43,29 +41,47 @@ void ADC_Init(void)
     // sense 5V
     AD1PCFGLbits.PCFG1 = 0;
     
-    
-    
     AD1CON1bits.SAMP = 0;
     AD1CON1bits.ADON = 1;    // Turn on the A/D converter
+    
+    AD1CON1bits.DONE = 0;   // clear du Done si nécessaire
+    AD1CON1bits.SAMP = 1;   // début du temps de sample, qui convetira tout seul après
+    Last_ADC_Convert = ADC_CHAN_VBAT;
 }
 
-
-
-
-u16 ADC_Convert(u8 chan)
+void ADC_Every_ms(void)
 {
-    AD1CHS0bits.CH0SA = chan;
-    AD1CON1bits.SAMP = 1;   // début du temps de sample, qui convetira tout seul après
-    
-    Maxtime = 100;   // 100 ms pour la conversion max  (bien trop))
-    // attente de la conversion
-    while ((!AD1CON1bits.DONE) && (Maxtime));
-    
-    if (AD1CON1bits.DONE)
-        return ADC1BUF0;
-    else {
-        printf("error");
-        return 0xFFFF;
+    static u16 Maxtime = 0;
+    u16 val16;
+    if (AD1CON1bits.DONE) {
+        AD1CON1bits.DONE = 0;
+        val16 = ADC1BUF0;
+        if (Last_ADC_Convert == ADC_CHAN_VBAT) {
+            V_Vbat = val16 * GAIN_VBAT;
+            AD1CHS0bits.CH0SA = ADC_CHAN_5V;
+            Last_ADC_Convert = ADC_CHAN_5V;
+        } else {    // if (Last_ADC_Convert == ADC_CHAN_5V) {
+            V_5V = val16 * GAIN_5V;
+            if (V_5V < SEUIL_URGENCE_5V)
+                Mode_Urgence = 1;
+            AD1CHS0bits.CH0SA = ADC_CHAN_VBAT;
+            Last_ADC_Convert = ADC_CHAN_VBAT;
+        }
+        AD1CON1bits.SAMP = 1;
+    } else {
+        Maxtime ++;
+        if (Maxtime > 20) {
+            printf("ADC_Error\n");
+            ADC_Init();
+            Maxtime = 0;
+            //Error_ADC = 1;
+        }
     }
 }
 
+float Get_V_5V (void)
+{   return V_5V;    }
+
+float Get_V_Vbat (void)
+{   return V_Vbat;  }
+    

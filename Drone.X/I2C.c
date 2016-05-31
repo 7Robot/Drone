@@ -16,209 +16,139 @@ void I2C_Init (void)
     
 }
 
-void I2C_Try(void)
+u8 I2C_Write(u8 add, u8 reg, u8 nb_data, u8 *data)
 {
-    u8 val8;
-    printf("Test alti \n");
-    Maxtime = 10;
+    u8 error = 0;
+    Set_Maxtime(10);
     I2C1CONbits.SEN = 1;    // envoi start condition
-    while (I2C1CONbits.SEN && Maxtime);    // attente de l'envoi
-    I2C1TRN = ALTI_ADD;     // write
-    Maxtime = 30;
-    while ((!I2C1STATbits.TRSTAT) && Maxtime);  // attente début transmission
-    while (I2C1STATbits.TRSTAT && Maxtime);     // attente fin transmission
-    
-    if (!I2C1STATbits.ACKSTAT && Maxtime)  // si on a bien reçu l'acknoledge de l'atltimetre
-    {
-        I2C1TRN = ALTI_RESET_CMD;
-        Maxtime = 30;
-        while ((!I2C1STATbits.TRSTAT) && Maxtime);  // attente début transmission
-        while (I2C1STATbits.TRSTAT && Maxtime);     // attente fin transmission
-        if (!I2C1STATbits.ACKSTAT && Maxtime)  // si on a bien reçu l'acknoledge de l'atltimetre
-        {
-            printf("Alti OK !\n");
-            
-        } else {
-            printf ("Cmd Failed\n");
-        }
-    } else {
-        printf ("Add failed\n");
+    while (I2C1CONbits.SEN && Get_Maxtime());    // attente de l'envoi
+    I2C1TRN = add<<1;
+    Set_Maxtime(30);
+    while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
+    while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
+    I2C1TRN = reg;
+    Set_Maxtime(30);
+    while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
+    while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
+    while (nb_data) {
+        I2C1TRN = *data;
+        Set_Maxtime(30);
+        while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
+        while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
+        data ++;
+        nb_data --;
     }
-    Maxtime = 10;
+    
+    Set_Maxtime(10);
     I2C1CONbits.PEN = 1;    // envoi stop condition
-    while (I2C1CONbits.PEN && Maxtime);    // attente de l'envoi
+    while (I2C1CONbits.PEN && Get_Maxtime());    // attente de l'envoi
     
-    Delay_ms(50);   // petite pause!
-     printf("Test accel \n");
-    Maxtime = 10;
-    I2C1CONbits.SEN = 1;    // envoi start condition
-    while (I2C1CONbits.SEN && Maxtime);    // attente de l'envoi
-    I2C1TRN = ACCEL_ADD;     // write
-    Maxtime = 30;
-    while ((!I2C1STATbits.TRSTAT) && Maxtime);  // attente début transmission
-    while (I2C1STATbits.TRSTAT && Maxtime);     // attente fin transmission
-    
-    if (!I2C1STATbits.ACKSTAT && Maxtime)  // si on a bien reçu l'acknoledge de l'accel
-    {
-        I2C1TRN = 0x71;     //registre "who am I"
-        Maxtime = 30;
-        while ((!I2C1STATbits.TRSTAT) && Maxtime);  // attente début transmission
-        while (I2C1STATbits.TRSTAT && Maxtime);     // attente fin transmission
-        if (!I2C1STATbits.ACKSTAT && Maxtime)  // si on a bien reçu l'acknoledge de l'atltimetre
-        {
-            Maxtime = 100;
-            I2C1CONbits.SEN = 1;    // envoi start condition
-            while (I2C1CONbits.SEN && Maxtime);    // attente de l'envoi
-            I2C1TRN = ACCEL_ADD+1;     // read !
-            while ((!I2C1STATbits.TRSTAT) && Maxtime);  // attente début transmission
-            while (I2C1STATbits.TRSTAT && Maxtime);     // attente fin transmission
-            
-            I2C1CONbits.RCEN = 1;   // passage en receive
-            while (I2C1CONbits.RCEN && Maxtime);
-            val8 = I2C1RCV;
-            I2C1CONbits.ACKDT = 1;      // on veut pas acknoledge
-            I2C1CONbits.ACKEN = 1;      // laisse partir le bit acknoledge
-            
-            while (I2C1CONbits.ACKEN && Maxtime);
-            
-            
-            I2C1CONbits.PEN = 1;    // envoi stop condition
-            while (I2C1CONbits.PEN && Maxtime);    // attente de l'envoi
-            if (!Maxtime) {
-                printf ("error Rd\n");
-            } else {
-                printf("Accel OK, who am I is : 0x%02X", val8);
-            }
-            
-        } else {
-            printf ("Reg add write Failed\n");
-        }
-    } else {
-        printf ("Add failed\n");
-    }
-    
-    
+    return 0;
 }
 
+u8 I2C_Read(u8 add, u8  reg, u8 nb_data, u8 *data)
+{
+    Set_Maxtime(10);
+    I2C1CONbits.SEN = 1;    // envoi start condition
+    while (I2C1CONbits.SEN && Get_Maxtime());    // attente de l'envoi
+    I2C1TRN = add<<1;
+    Set_Maxtime(30);
+    while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
+    while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
+    I2C1TRN = reg;
+    Set_Maxtime(30);
+    while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
+    while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
+    
+    Set_Maxtime(10);
+    I2C1CONbits.SEN = 1;    // envoi start condition
+    while (I2C1CONbits.SEN && Get_Maxtime());    // attente de l'envoi
+    I2C1TRN = (add<<1)+1;
+    Set_Maxtime(30);
+    while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
+    while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
+    
+    while (nb_data) {
+        nb_data --;
+        
+        I2C1CONbits.RCEN = 1;   // passage en receive
+        Set_Maxtime(30);
+        while (I2C1CONbits.RCEN && Get_Maxtime());
+
+        *data = I2C1RCV;
+        if (nb_data) {
+            data ++;
+            I2C1CONbits.ACKDT = 0;      // on veut acknoledge
+        } else {
+            I2C1CONbits.ACKDT = 1;      // on veut pas acknoledge
+        }
+        I2C1CONbits.ACKEN = 1;      // laisse partir le bit acknoledge
+        while (I2C1CONbits.ACKEN && Get_Maxtime());
+    }
+    Set_Maxtime(10);
+    I2C1CONbits.PEN = 1;    // envoi stop condition
+    while (I2C1CONbits.PEN && Get_Maxtime());    // attente de l'envoi
+
+    return 0;
+}
 
 void I2C_Try_All(void)
 {
     
-    u8 add;
-    for (add = 0; add < 0xFF; add ++)
+    u16 add;
+    for (add = 0x0; add < 0xFF; add += 2)
     {
-        Maxtime = 30;
+        I2C1CONbits.I2CEN = 1;  // active l'interface
+        Delay_ms(10);
+        printf ("\r0x%02X", add);
+        Set_Maxtime(30);
         I2C1CONbits.SEN = 1;    // envoi start condition
-        while (I2C1CONbits.SEN && Maxtime);    // attente de l'envoi
-        I2C1TRN = add;     // write de l'adresse
-        while ((!I2C1STATbits.TRSTAT) && Maxtime);  // attente début transmission
-        while (I2C1STATbits.TRSTAT && Maxtime);     // attente fin transmission
-
-        if (!I2C1STATbits.ACKSTAT && Maxtime)  // si on a recu un ack :
-        {
-            printf ("found : 0x%02X\n", add);
+        while (I2C1CONbits.SEN && Get_Maxtime());    // attente de l'envoi
+        if (Get_Maxtime()) {
+            I2C1TRN = add;     // write de l'adresse
+            while ((!I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
+            while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
+            if (Get_Maxtime()) {
+                if (!I2C1STATbits.ACKSTAT && Get_Maxtime())  // si on a recu un ack :
+                {
+                    printf (" : found!\n");
+                }
+            } else {
+                printf ("Erreur Transmission\n");
+            }
+            Set_Maxtime(10);
+            I2C1CONbits.PEN = 1;    // envoi stop condition
+            while (I2C1CONbits.PEN && Get_Maxtime());    // attente de l'envoi
+            if (!Get_Maxtime()) {
+                printf ("Erreur Stop\n");
+            }
+        } else {
+            printf ("Erreur Start\n");
         }
-        Maxtime = 10;
-        I2C1CONbits.PEN = 1;    // envoi stop condition
-        while (I2C1CONbits.PEN && Maxtime);    // attente de l'envoi
+        Delay_ms(10);
+        I2C1CONbits.I2CEN = 0;  // Désactive l'interface
         Delay_ms(10);
     }
     printf ("Fin\n");
+    I2C1CONbits.I2CEN = 1;  // active l'interface
 }
 
-void I2C_Alti_Send_Command(u8 command)
-{
-    Maxtime = 40;
-    I2C1CONbits.SEN = 1;    // envoi start condition
-    while (I2C1CONbits.SEN && Maxtime);    // attente de l'envoi
-    I2C1TRN = ALTI_ADD;     // write
-    while ((!I2C1STATbits.TRSTAT) && Maxtime);  // attente début transmission
-    while (I2C1STATbits.TRSTAT && Maxtime);     // attente fin transmission
-    
-        
-    I2C1TRN = command;
-    while ((!I2C1STATbits.TRSTAT) && Maxtime);  // attente début transmission
-    while (I2C1STATbits.TRSTAT && Maxtime);     // attente fin transmission
-
-    I2C1CONbits.PEN = 1;    // envoi stop condition
-    while (I2C1CONbits.PEN && Maxtime);    // attente de l'envoi
-    // if (!Maxtime)
-    //    printf ("error Cmd\n");
-}
-
-u32 I2C_Alti_Read(u8 nb_bytes)
-{
-    u8 i;
-    u32 val32 = 0;
-    Maxtime = 40;
-    I2C1CONbits.SEN = 1;    // envoi start condition
-    while (I2C1CONbits.SEN && Maxtime);    // attente de l'envoi
-    I2C1TRN = ALTI_ADD+1;     // read
-    while ((!I2C1STATbits.TRSTAT) && Maxtime);  // attente début transmission
-    while (I2C1STATbits.TRSTAT && Maxtime);     // attente fin transmission
-    
-    for (i = 1; i <= nb_bytes; i ++) {
-        I2C1CONbits.RCEN = 1;   // passage en receive
-        while (I2C1CONbits.RCEN && Maxtime);
-        
-        val32 = (val32 * 256) + I2C1RCV;
-        
-        if (i == nb_bytes)
-            I2C1CONbits.ACKDT = 1;      // on veut pas acknoledge
-        else
-            I2C1CONbits.ACKDT = 0;      // on veut acknoledge
-            
-        I2C1CONbits.ACKEN = 1;      // laisse partir le bit acknoledge
-        while (I2C1CONbits.ACKEN && Maxtime);
-    }
-    
-    I2C1CONbits.PEN = 1;    // envoi stop condition
-    while (I2C1CONbits.PEN && Maxtime);    // attente de l'envoi
-    if (!Maxtime)
-        printf ("error Rd\n");
-    return val32;
-}
-
-
-
-void Alti_Read_EEPROM(void)
+void Alti_Read(void)
 {
     u8 i;
     char c;
     u16 EEPROM[8];
+    u8 tab8[4];
     u32 D1, D2, TEMP, Dt, val32;
     uint64_t val64, OFF, SENS, val64b, PRESS64;
     printf("EEPROM\n");
-    for (i = 0; i < 8; i++)
-    {
-        I2C_Alti_Send_Command(0xA0 + 2*i);
-        val32 = I2C_Alti_Read(2);
+    for (i = 0; i < 8; i++) {
+        I2C_Read(ALTI_ADD, 0xA0+2*i, 2, &tab8[0]);
+        val32 = (((u16)(tab8[0])) << 8) + tab8[1];
         EEPROM[i] = val32;
         printf("0x%04lX\n", val32 );
         Delay_ms(50);
     }
-    /*u8 CRC_Rd = EEPROM[7];
-    EEPROM[7] = EEPROM[7] & 0xFF00;
-    u8 n_bit, cnt, val8;
-    u16 n_rem;
-    for (cnt = 0; cnt < 16; cnt ++) {
-        if (cnt & 0x01) {
-            val8 = EEPROM[cnt/2] & 0x00FF;
-        } else {
-            val8 = EEPROM[cnt/2] >> 8;
-        }
-        n_rem ^= val8;
-        for (n_bit = 0; n_bit < 8; n_bit ++) {
-            if (n_rem & 0x8000) {
-                n_rem = (n_rem * 2) ^ 0x3000;
-            } else {
-                n_rem *= 2;
-            }
-        }
-        //printf ("n_rem : 0x%04X\n", n_rem);
-        //Delay_ms(10);
-    }*/
-    
     
     
     printf("Convert_pressions et temp\n");
@@ -227,21 +157,24 @@ void Alti_Read_EEPROM(void)
         D1 = 0;
         D2 = 0;
         //for (i = 0; i < 20; i++) {
-        for (i = 0; i < 5; i++) {
-            I2C_Alti_Send_Command(0x48);
+        for (i = 0; i < 25; i++) {
+            I2C_Write(ALTI_ADD, 0x48 ,0 ,0);
+            //I2C_Alti_Send_Command(0x48);
             Delay_ms(11);
-            I2C_Alti_Send_Command(0);   // read
-            D1 += I2C_Alti_Read(3);
-            I2C_Alti_Send_Command(0x58);
+            I2C_Read(ALTI_ADD, 0, 3, &tab8[0]);
+            D1 += (((u32)(tab8[0])) << 16) + (((u16)(tab8[1])) << 8) + tab8[2];
+            
+            I2C_Write(ALTI_ADD, 0x58 ,0 ,0);
+            //I2C_Alti_Send_Command(0x58);
             Delay_ms(11);
-            I2C_Alti_Send_Command(0);   // read
-            D2 += I2C_Alti_Read(3);
+            I2C_Read(ALTI_ADD, 0, 3, &tab8[0]);
+            D2 += (((u32)(tab8[0])) << 16) + (((u16)(tab8[1])) << 8) + tab8[2];
         }
         
         while(!Is_TX_Empty());
         
-        D1 = D1 / 5;
-        D2 = D2 / 5;
+        D1 = D1 / 25;
+        D2 = D2 / 25;
         
         val32 = EEPROM[5];
         val32 = val32 << 8;
@@ -280,7 +213,102 @@ void Alti_Read_EEPROM(void)
         //printf("0x%06lX  0x%06lX\r", val32, val32b);
         //printf("D2 0x%08lX Dt 0x%08lX  Temp %ld\n", D2, Dt, TEMP);
         //printf("D1 0x%06lX OFF 0x%016llX  SENS 0x%016llX  Press  %lld\n", D1, OFF, SENS, PRESS64);
-        printf("\rTemp %ld", TEMP);
-        printf(" Press  %lld", PRESS64);
+        printf("\rTemp %ld.%ld", (TEMP/100), (TEMP%100));
+        printf(" Press  %lld  ", PRESS64);
     }
+}
+
+
+
+void I2C_Try_Accel (void)
+{
+    u8 Buffer[20];
+    char c;
+    u8 i, val8;
+    u16 nb_try = 0;
+    int16_t ax, ay, az;
+    int16_t gx, gy, gz;
+    int16_t temp;
+    int16_t mx, my, mz;
+    
+    
+    // Configure gyroscope range
+    val8 = GYRO_FULL_SCALE_2000_DPS;
+    I2C_Write(MPU9250_ADDRESS, 27, 1, &val8);
+    // Configure accelerometers range
+    val8 = ACC_FULL_SCALE_16_G;
+    I2C_Write(MPU9250_ADDRESS, 28, 1, &val8);
+    // Set by pass mode for the magnetometers
+    val8 = 0x02;
+    I2C_Write(MPU9250_ADDRESS, 0x37, 1, &val8);
+    
+    
+    
+    while (!(Get_Uart(&c))) {
+        I2C_Read(MPU9250_ADDRESS, 0x3B, 14, &Buffer[0]);
+        
+        // Accelerometer
+        ax = -(Buffer[0]<<8 | Buffer[1]);
+        ay = -(Buffer[2]<<8 | Buffer[3]);
+        az =   Buffer[4]<<8 | Buffer[5];
+        // temp
+        temp = Buffer[6]<<8 | Buffer[7];
+        // Gyroscope
+        gx = -(Buffer[8]<<8 | Buffer[9]);
+        gy = -(Buffer[10]<<8 | Buffer[11]);
+        gz =   Buffer[12]<<8 | Buffer[13];
+        
+        // Request first magnetometer single measurement
+        val8 = 0x01;
+        I2C_Write(MAG_ADDRESS, 0x0A, 1, &val8);
+        // va voir si on peut lire le magneto
+        i = 0;
+        nb_try = 0;
+        while ((!(i&0x01)) && (nb_try < 10)){
+            I2C_Read(MAG_ADDRESS, 0x02, 1, &i);
+            nb_try ++;
+            Delay_ms(5);
+        }
+        
+        // Read magnetometer data  
+        I2C_Read(MAG_ADDRESS,0x03,6,&Buffer[0]);
+        
+        // Magnetometer
+        mx = -(Buffer[3]<<8 | Buffer[2]);
+        my = -(Buffer[1]<<8 | Buffer[0]);
+        mz = -(Buffer[5]<<8 | Buffer[4]);
+        
+        printf ("Accel : \n");
+        printf("\tax : %d", ax);
+        while (!Is_TX_Empty());
+        printf("\tay : %d", ay);
+        while (!Is_TX_Empty());
+        printf("\taz : %d\n", az);
+        while (!Is_TX_Empty());
+        
+        printf ("Gyro : \n");
+        printf("\tgx : %d", gx);
+        while (!Is_TX_Empty());
+        printf("\tgy : %d", gy);
+        while (!Is_TX_Empty());
+        printf("\tgz : %d\n", gz);
+        while (!Is_TX_Empty());
+        
+        printf ("Magneto : \n");
+        printf("\tmx : %d", mx);
+        while (!Is_TX_Empty());
+        printf("\tmy : %d", my);
+        while (!Is_TX_Empty());
+        printf("\tmz : %d\n", mz);
+        while (!Is_TX_Empty());
+        
+        printf("Temp : %d\n",temp);
+        while (!Is_TX_Empty());
+        printf ("\n\n");
+        Delay_ms(50);
+    }
+
+    
+    
+    
 }

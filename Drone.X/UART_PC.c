@@ -31,10 +31,6 @@ void UART_PC_Init(void)
     //Remapage uart 1
     _U1RXR = 24;
     _RP23R = 0b0011;  // RP23 = U1TX (p.167)
-    
-    
-    
-    
 }
 
 
@@ -49,14 +45,15 @@ void __attribute__((interrupt, auto_psv)) _U1TXInterrupt(void) {
 
     if (i_TX_Transmit == i_TX_PC_Buff) // si on a tout transmit, on s'arrete
         IEC0bits.U1TXIE = 0;
-
 }
 
 void __attribute__((interrupt, auto_psv)) _U1RXInterrupt(void) {
-    RX_PC_Buff[i_RX_PC_Buff] = U1RXREG;
-    i_RX_PC_Buff++;
-    if (i_RX_PC_Buff == UART_PC_SIZE_BUFF)
-        i_RX_PC_Buff = 0;
+    u16 i = i_RX_PC_Buff;
+    RX_PC_Buff[i] = U1RXREG;
+    i++;
+    if (i == UART_PC_SIZE_BUFF)
+        i = 0;
+    i_RX_PC_Buff = i;
     IFS0bits.U1RXIF = 0;
 }
 
@@ -65,37 +62,6 @@ u8 Is_TX_Empty(void)
     return !IEC0bits.U1TXIE;
 }
 
-/*
-void Transmit_String(char *str) // lets send "abc"
-{
-    while (*str != 0) // while we're not reached the end of the string
-    {
-        Transmit_Char(*str);
-        //if (*str == '\n')
-          //  Transmit_Char('\r');
-        str++; // going to next character 
-    }
-}
-
-// permet de faire marcher tout ce qui est printf !
-// mais ne semble pas correspondre à la norme oO
-int	puts(const char *symbol)
-{
-    //Transmit_Char(*symbol);
-    Transmit_String(symbol);
-    Transmit_Char('a');
-    Transmit_Char('\n');
-    return 1;
-}
-
-int putchar (int c)
-{
-    u8 car = c & 0xFF;
-    Transmit_Char(car);
-    Transmit_Char('b');
-    return c;
-}
-*/
 int write(int handle, void *buffer, unsigned int len)
 {
     unsigned int i;
@@ -106,7 +72,6 @@ int write(int handle, void *buffer, unsigned int len)
             buff ++;
         }
  //   }
-    
     //Transmit_Char('c');
     return len;
 }
@@ -128,21 +93,6 @@ void test_transmit(void)
     u8 i = i_TX_PC_Buff;
     printf ("%d\n", i);
 }
-
-//uint8_t Get_Uart(char *c) {
-//    static uint16_t i_RX = 0;
-//
-//    if (i_RX != i_RX_PC_Buff) { // si il y a qq chose dans le buffer
-//        *c = RX_PC_Buff[i_RX];
-//        i_RX++;
-//        if (i_RX == UART_PC_SIZE_BUFF)
-//            i_RX = 0;
-//        return 1;
-//    } else {
-//        return 0;
-//    }
-//}
-
 
 u8 Get_Uart(char *c) {
     static u16 i_RX = 0;

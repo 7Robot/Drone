@@ -53,36 +53,39 @@ int main(void) {
                     do { i++; } while (i); }
                 LED1 = !LED1;
             } else if (c == '5') {
-                i = ADC_Convert(ADC_CHAN_5V);
-                printf("5V = %d 0x%04X\n", i, i);
+                printf("5V = %f\n", Get_V_5V());
             } else if (c == 'v') {
-                i = ADC_Convert(ADC_CHAN_VBAT);
-                printf("Vbat = %d 0x%04X\n", i, i);
-            } else if (c == 'i') {
-                I2C_Try();
+                printf("Vbat = %f\n", Get_V_Vbat());
             } else if (c == 'I') {
                 I2C_Try_All();
             } else if (c == 'T') {
                 test_transmit();
             } else if (c == 'e') {
-                Alti_Read_EEPROM();
-            } 
-            else if (c == 'o') {
-                GPS_Send_Off();
-            } else if (c == 'g') {
+                Alti_Read(); 
+            } else if (c == 'a') {
+                I2C_Try_Accel(); 
+            }
+            
+            
+            
+            
+            /* else if (c == 'g') {
                 GPS_Send_On_Pin();
+            } else if (c == 'o') {
+                GPS_Send_Off();
+            } else if (c == 'O') {
+                GPS_do_Off();
             } else if (c == 'G') {
                 Get_Last_GPS_Messages();
             }  else if (c == 'q') {
                 GPS_Querry_Message();
             } else if (c == 'f') {
                 GPS_Go_Fast();
-            } else if (c == 's') {
-                GPS_Go_Slow();
             } else if (c == 't') {
                 GPS_try_baudrates();
             } 
-            /*
+            
+            
             else if (c == 'r') {
                 RF_Reset();
             } else if (c == 'R') {
@@ -97,14 +100,13 @@ int main(void) {
                 printf("RF Stat : 0x%02X\n", RF_Get_Status());
                 printf("MODEM Stat 1 : 0x%02X\n", RF_Read_Reg(CC1120_MODEM_STATUS1));
                 printf("MODEM Stat 0 : 0x%02X\n", RF_Read_Reg(CC1120_MODEM_STATUS1));
-            } 
-            */
+            } */
+            
             
         }
         if (Mode_Urgence) {
             GPS_Send_Off();
-            while (1) {
-            }
+            //while (1) ;
         }
         
     }

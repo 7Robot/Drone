@@ -12,7 +12,9 @@ typedef uint32_t u32;
 typedef uint16_t u16;
 typedef uint8_t u8;
 
-#define FOSC 80017143    // Freq de l'horloge après la PLL
+#define FOSC 80017143    // Freq de l'horloge après la PLL (avec M à 152)
+//#define FOSC 79490714    // Freq de l'horloge après la PLL (avec M à 151)
+//#define FOSC 20004286
 #define FCY (FOSC/2)
 
 
@@ -30,6 +32,7 @@ typedef uint8_t u8;
 #include "UART_PC.h"
 
 
+#define SEUIL_URGENCE_5V  4.3
 extern volatile u8 Mode_Urgence;
 
 

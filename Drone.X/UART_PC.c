@@ -88,11 +88,11 @@ void Transmit_Char(char symbol) {
     IEC0bits.U1TXIE = 1;
 }
 
-void test_transmit(void)
-{
-    u8 i = i_TX_PC_Buff;
-    printf ("%d\n", i);
-}
+//void test_transmit(void)
+//{
+//    u8 i = i_TX_PC_Buff;
+//    printf ("%d\n", i);
+//}
 
 u8 Get_Uart(char *c) {
     static u16 i_RX = 0;

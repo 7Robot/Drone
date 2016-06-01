@@ -58,9 +58,7 @@ int main(void) {
                 printf("Vbat = %f\n", Get_V_Vbat());
             } else if (c == 'I') {
                 I2C_Try_All();
-            } else if (c == 'T') {
-                test_transmit();
-            } else if (c == 'e') {
+            }else if (c == 'e') {
                 Alti_Read(); 
             } else if (c == 'a') {
                 I2C_Try_Accel(); 
@@ -84,7 +82,7 @@ int main(void) {
             } else if (c == 't') {
                 GPS_try_baudrates();
             } 
-            
+            */
             
             else if (c == 'r') {
                 RF_Reset();
@@ -100,7 +98,7 @@ int main(void) {
                 printf("RF Stat : 0x%02X\n", RF_Get_Status());
                 printf("MODEM Stat 1 : 0x%02X\n", RF_Read_Reg(CC1120_MODEM_STATUS1));
                 printf("MODEM Stat 0 : 0x%02X\n", RF_Read_Reg(CC1120_MODEM_STATUS1));
-            } */
+            } 
             
             
         }

@@ -183,7 +183,7 @@ void GPS_Send_Off(void)
     if (Is_GPS_TX_Empty())
         printf("OFF Sent! in %d ms\n", Count);
     else
-        printf("Failed GPS RST?\n")
+        printf("Failed GPS RST?\n");
 
     Delay_ms(1000);
     NRST_GPS = 0;

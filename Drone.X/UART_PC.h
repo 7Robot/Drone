@@ -26,7 +26,7 @@ u8 Is_TX_Empty(void);
 
 //int putchar (int c);
 int write(int handle, void *buffer, unsigned int len);
-void test_transmit(void);
+// void test_transmit(void);
 
 u8 Get_Uart(char *c);
 

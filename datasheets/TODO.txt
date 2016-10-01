@@ -1,0 +1,9 @@
+analyser les trames GPS et en faire la conversion pour avoir l'altitude + position (conversion angles !)
+
+automatiser le fonctionnnement de l'altimetre / magnéto / gyro / accéléro
+Puis analyser les résultats de manière auto aussi...
+
+possiblement mettre en place un systeme de commandes pour ce qui arrive du pc (autre que juste un caractère par caractère)
+(là j'ai peut-être des trucs déjà prés au boulot / ou juste reprendre / adapter celui du robot CDF)
+
+bouffer la datasheet des cartes RFs, pour savoir comment les régler...

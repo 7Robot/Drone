@@ -18,6 +18,9 @@ void RF_Wait_For_Packet(void);
 
 void RF_Manual_Calib(u8 verbose);
 
+static void manualCalibration(void);    // copié collé exemple...
+
+void print_preferredSettings868_size(void);
 
 
 /* configuration registers */

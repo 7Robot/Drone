@@ -22,8 +22,10 @@ u8 RF_Reset_Actif = 1;
 // Address config = No address check. 
 // Packet length = 255 
 // Device address = 0 
-#define NUMBER_OF_CONFIG_REGISTER 37
-static const u16 preferredSettings868[NUMBER_OF_CONFIG_REGISTER][2] = {
+
+
+
+static const u16 preferredSettings868[][2] = {
   {CC1120_IOCFG0,        0x06},
   {CC1120_SYNC_CFG1,     0x0B},
   {CC1120_DCFILT_CFG,    0x1C},
@@ -46,7 +48,8 @@ static const u16 preferredSettings868[NUMBER_OF_CONFIG_REGISTER][2] = {
   {CC1120_IF_MIX_CFG,    0x00},
   {CC1120_FREQOFF_CFG,   0x22},
   {CC1120_FREQ2,         0x6C},
-  {CC1120_FREQ1,         0x80},
+  {CC1120_FREQ1,         0xA0}, //869
+//  {CC1120_FREQ1,         0x80}, //868
   {CC1120_FREQ0,         0x00},
   {CC1120_FS_DIG1,       0x00},
   {CC1120_FS_DIG0,       0x5F},
@@ -60,8 +63,10 @@ static const u16 preferredSettings868[NUMBER_OF_CONFIG_REGISTER][2] = {
   {CC1120_FS_SPARE,      0xAC},
   {CC1120_XOSC5,         0x0E},
   {CC1120_XOSC3,         0xC7},
-  {CC1120_XOSC1,         0x07}
+  {CC1120_XOSC1,         0x07},
 };
+
+
 
 void SPI_Init(void)
 {
@@ -124,10 +129,11 @@ u8 RF_Get_Status(void)
 u8 RF_Read_Reg(u16 reg_addr)
 {
     u8 val8, reg8;
+    val8 = SPI1BUF; // clear
     reg8 = (u8)(reg_addr & 0xFF);
     CSN_RF = 0;
     if (reg_addr & 0xFF00) {
-        SPI1BUF = 0x80 | 0x2F;
+        SPI1BUF = 0x80 | (reg_addr >> 8);
         while (!SPI1STATbits.SPIRBF);
         val8 = SPI1BUF;
         SPI1BUF = reg8;
@@ -142,6 +148,27 @@ u8 RF_Read_Reg(u16 reg_addr)
     CSN_RF = 1;
     
     return val8;
+}
+
+void RF_Write_Reg(u16 reg_addr, u8 Data)
+{
+    u8 val8, reg8;
+    val8 = SPI1BUF;
+    reg8 = (u8)(reg_addr & 0xFF);
+    CSN_RF = 0;
+    if (reg_addr & 0xFF00) {
+        SPI1BUF = (reg_addr >> 8);
+        while (!SPI1STATbits.SPIRBF);
+        val8 = SPI1BUF;
+    }
+    SPI1BUF = reg8;
+    while (!SPI1STATbits.SPIRBF);
+    val8 = SPI1BUF;
+    
+    SPI1BUF = Data;
+    while (!SPI1STATbits.SPIRBF);
+    val8 = SPI1BUF; 
+    CSN_RF = 1;
 }
 
 u8 RF_Send_Command(u8 cmd)
@@ -159,35 +186,11 @@ u8 RF_Send_Command(u8 cmd)
     return val8;
 }
 
-void RF_Write_Reg(u16 reg_addr, u8 Data)
-{
-    u8 val8, reg8;
-    reg8 = (u8)(reg_addr & 0xFF);
-    CSN_RF = 0;
-    if (reg_addr & 0xFF00) {
-        SPI1BUF = 0x2F;
-        while (!SPI1STATbits.SPIRBF);
-        val8 = SPI1BUF;
-        SPI1BUF = reg8;
-    } else {
-        SPI1BUF = reg8;
-    }
-    while (!SPI1STATbits.SPIRBF);
-    val8 = SPI1BUF;
-    SPI1BUF = Data;
-    Set_Maxtime(20);
-    while (!SPI1STATbits.SPIRBF  && Get_Maxtime());
-    val8 = SPI1BUF; 
-    CSN_RF = 1;
-    
-}
-
 
 void RF_Read_All_Reg(void)
 {
-    u16 i;
+    u16 i = 0;
     
-    RF_Send_Command(CC1120_SRES);
     Delay_ms(100);
     
     for (i = 0; i < 0x2F; i++) {
@@ -199,11 +202,13 @@ void RF_Read_All_Reg(void)
         printf ("Extended Read 0x%02X : reg 0x%02X\n", (i&0xFF), RF_Read_Reg(i));
         while(!Is_TX_Empty());
     }
+    printf("\n");
     for ( i = 0x2F64; i <= 0x2FA0; i++)
     {
         printf ("Extended Read 0x%02X : reg 0x%02X\n", (i&0xFF), RF_Read_Reg(i));
         while(!Is_TX_Empty());
     }
+    printf("\n");
     for ( i = 0x2FD2; i <= 0x2FD9; i++)
     {
         printf ("Extended Read 0x%02X : reg 0x%02X\n", (i&0xFF), RF_Read_Reg(i));
@@ -227,16 +232,17 @@ void RF_ON (void)
     
     printf("Reset in %d ms\n", i);
     printf ("Write all config register\n");
-    
-    for (i = 0; i < NUMBER_OF_CONFIG_REGISTER; i++) {
+    i = 0;
+    while (i < (sizeof(preferredSettings868)/4)) {
         RF_Write_Reg(preferredSettings868[i][0], preferredSettings868[i][1]);
-        if (i == (NUMBER_OF_CONFIG_REGISTER-1)) {
-            printf ("Last is 0x%04X, 0x%02X\n", preferredSettings868[i][0], preferredSettings868[i][1]);
-        }
+        i++;
     }
-    //printf("Calibration : \n");
-    //RF_Manual_Calib(1);
-    //printf ("RF is working\n");
+    i--;    
+    printf ("Last is 0x%04X, 0x%02X\n", preferredSettings868[i][0], preferredSettings868[i][1]);
+        
+    printf("Calibration : \n");
+    manualCalibration();
+    printf ("RF is working\n");
     
 }
 
@@ -314,13 +320,15 @@ void RF_Send_Packet(void)
 {
     u16 Count;
     static u8 Count_Packet = 0;
-    u8 Buff_TX[10] = {7,0,0x30,0x40,0x55,0x55,0x55,0x55};
-    Buff_TX[1] = Count_Packet++;
+    u8 Buff_TX[10] = {27,0,0,0x40,0x55,0x51,0x52,0x53};
+    Buff_TX[2] = Count_Packet++;
     u8 i, val8, prev_val8;
     // ecrit le buffer dans la fifo
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 28; i++) {
         RF_Write_Reg(CC1120_SINGLE_TXFIFO, Buff_TX[i]);
+        printf(",%02X", Buff_TX[i] );
     }
+    printf("\n");
 
     // PKT_Config  modifié
     //RF_Write_Reg(CC1120_PKT_CFG0, (RF_Read_Reg(CC1120_PKT_CFG0) & 0x9F));
@@ -366,25 +374,26 @@ void RF_Wait_For_Packet(void)
 {
     u8 val8, c;
     u8 i, buff;
-    
-    // PKT_Config  modifié
-    RF_Write_Reg(CC1120_PKT_CFG0, (RF_Read_Reg(CC1120_PKT_CFG0) & 0x9F));
-    
-    RF_Write_Reg(CC1120_PKT_LEN,5);
-    
-    RF_Write_Reg(CC1120_SYNC3,0x26);
-    RF_Write_Reg(CC1120_SYNC2,0x33);
-    RF_Write_Reg(CC1120_SYNC1,0xd9);
-    RF_Write_Reg(CC1120_SYNC0,0xcc);
-    
-    // Set RX Filter BW (12.5 kHz)
-    //RF_Write_Reg(CC1120_CHAN_BW,0x10);
-    RF_Write_Reg(CC1120_CHAN_BW,0x05);
-    
-  // Clear FREQOFF register in case prev. compensation has been done on a
-  // faulty packet
-    RF_Write_Reg(CC1120_FREQOFF1,0);
-    RF_Write_Reg(CC1120_FREQOFF0,0);
+    u8 last_receive = 1, receive = 0;
+//    
+//    // PKT_Config  modifié
+//    RF_Write_Reg(CC1120_PKT_CFG0, (RF_Read_Reg(CC1120_PKT_CFG0) & 0x9F));
+//    
+//    RF_Write_Reg(CC1120_PKT_LEN,5);
+//    
+//    RF_Write_Reg(CC1120_SYNC3,0x26);
+//    RF_Write_Reg(CC1120_SYNC2,0x33);
+//    RF_Write_Reg(CC1120_SYNC1,0xd9);
+//    RF_Write_Reg(CC1120_SYNC0,0xcc);
+//    
+//    // Set RX Filter BW (12.5 kHz)
+//    //RF_Write_Reg(CC1120_CHAN_BW,0x10);
+//    RF_Write_Reg(CC1120_CHAN_BW,0x05);
+//    
+//  // Clear FREQOFF register in case prev. compensation has been done on a
+//  // faulty packet
+//    RF_Write_Reg(CC1120_FREQOFF1,0);
+//    RF_Write_Reg(CC1120_FREQOFF0,0);
     
     printf("Start Receive Mode\n");
     // passe en mode reception
@@ -397,8 +406,18 @@ void RF_Wait_For_Packet(void)
     if (i == 200)
         printf ("error set RX\n");
     
+    val8 = RF_Get_Status();
+    printf ("Stat2 0x%02X\n", val8);
+    
+    
     // on reste dans ce mode tant que l'utilisateur n'a pas appuyé sur une touche
     while (!Get_Uart(&c)) {
+        receive = RF_Read_Reg(CC1120_SINGLE_RXFIFO);
+        if (receive != last_receive) {
+            printf("0x%02X ", receive);
+            last_receive = receive;
+        }
+        /*
         val8 = RF_Read_Reg(CC1120_NUM_RXBYTES);
         if (val8) {
             LED1 = !LED1;
@@ -408,7 +427,7 @@ void RF_Wait_For_Packet(void)
                 printf("0x%02X ", buff);
             }
             printf ("\n");
-        }
+        }*/
         Delay_ms(1);
     }
     
@@ -416,3 +435,109 @@ void RF_Wait_For_Packet(void)
 }
 
 
+#define VCDAC_START_OFFSET 2
+#define FS_VCO2_INDEX 0
+#define FS_VCO4_INDEX 1
+#define FS_CHP_INDEX 2
+
+static void manualCalibration(void) {
+  
+    u8 original_fs_cal2;
+    u8 calResults_for_vcdac_start_high[3];
+    u8 calResults_for_vcdac_start_mid[3];
+    u8 marcstate;
+    u8 writeByte;
+
+    
+    // 1) Set VCO cap-array to 0 (FS_VCO2 = 0x00)
+    //writeByte = 0x00;
+    //cc112xSpiWriteReg(CC112X_FS_VCO2, &writeByte, 1);
+    RF_Write_Reg(CC1120_FS_VCO2, 0);
+    
+    // 2) Start with high VCDAC (original VCDAC_START + 2):
+    //cc112xSpiReadReg(CC112X_FS_CAL2, &original_fs_cal2, 1);
+    original_fs_cal2 = RF_Read_Reg(CC1120_FS_CAL2);
+    
+    writeByte = original_fs_cal2 + VCDAC_START_OFFSET;
+    //cc112xSpiWriteReg(CC112X_FS_CAL2, &writeByte, 1);
+    RF_Write_Reg(CC1120_FS_CAL2, writeByte);
+    
+    // 3) Calibrate and wait for calibration to be done (radio back in IDLE state)
+    //trxSpiCmdStrobe(CC112X_SCAL);
+    RF_Send_Command(CC1120_SCAL);
+    
+    do 
+    {
+        //cc112xSpiReadReg(CC112X_MARCSTATE, &marcstate, 1);
+        marcstate = RF_Read_Reg(CC1120_MARCSTATE);
+    } while (marcstate != 0x41);
+    
+    // 4) Read FS_VCO2, FS_VCO4 and FS_CHP register obtained with high VCDAC_START value
+    //cc112xSpiReadReg(CC112X_FS_VCO2, &calResults_for_vcdac_start_high[FS_VCO2_INDEX], 1);
+    //cc112xSpiReadReg(CC112X_FS_VCO4, &calResults_for_vcdac_start_high[FS_VCO4_INDEX], 1);
+    //cc112xSpiReadReg(CC112X_FS_CHP, &calResults_for_vcdac_start_high[FS_CHP_INDEX], 1);
+    calResults_for_vcdac_start_high[FS_VCO2_INDEX] = RF_Read_Reg(CC1120_FS_VCO2);
+    calResults_for_vcdac_start_high[FS_VCO4_INDEX] = RF_Read_Reg(CC1120_FS_VCO4);
+    calResults_for_vcdac_start_high[FS_CHP_INDEX] = RF_Read_Reg(CC1120_FS_CHP);
+    
+    
+    // 5) Set VCO cap-array to 0 (FS_VCO2 = 0x00)
+    //writeByte = 0x00;
+    //cc112xSpiWriteReg(CC112X_FS_VCO2, &writeByte, 1);
+    RF_Write_Reg(CC1120_FS_VCO2, 0);
+    
+    // 6) Continue with mid VCDAC (original VCDAC_START):
+    writeByte = original_fs_cal2;
+    //cc112xSpiWriteReg(CC112X_FS_CAL2, &writeByte, 1);
+    RF_Write_Reg(CC1120_FS_CAL2, writeByte);
+    
+    // 7) Calibrate and wait for calibration to be done (radio back in IDLE state)
+    //trxSpiCmdStrobe(CC112X_SCAL);
+    RF_Send_Command(CC1120_SCAL);
+    
+    do 
+    {
+        //cc112xSpiReadReg(CC112X_MARCSTATE, &marcstate, 1);
+        marcstate = RF_Read_Reg(CC1120_MARCSTATE);
+    } while (marcstate != 0x41);
+    
+    // 8) Read FS_VCO2, FS_VCO4 and FS_CHP register obtained with mid VCDAC_START value
+    //cc112xSpiReadReg(CC112X_FS_VCO2, &calResults_for_vcdac_start_mid[FS_VCO2_INDEX], 1);
+    //cc112xSpiReadReg(CC112X_FS_VCO4, &calResults_for_vcdac_start_mid[FS_VCO4_INDEX], 1);
+    //cc112xSpiReadReg(CC112X_FS_CHP, &calResults_for_vcdac_start_mid[FS_CHP_INDEX], 1);
+    
+    calResults_for_vcdac_start_mid[FS_VCO2_INDEX] = RF_Read_Reg(CC1120_FS_VCO2);
+    calResults_for_vcdac_start_mid[FS_VCO4_INDEX] = RF_Read_Reg(CC1120_FS_VCO4);
+    calResults_for_vcdac_start_mid[FS_CHP_INDEX] = RF_Read_Reg(CC1120_FS_CHP);
+    
+    // 9) Write back highest FS_VCO2 and corresponding FS_VCO and FS_CHP result
+    if (calResults_for_vcdac_start_high[FS_VCO2_INDEX] > calResults_for_vcdac_start_mid[FS_VCO2_INDEX]) 
+    {
+        writeByte = calResults_for_vcdac_start_high[FS_VCO2_INDEX];
+        //cc112xSpiWriteReg(CC112X_FS_VCO2, &writeByte, 1);
+        RF_Write_Reg(CC1120_FS_VCO2, writeByte);
+        writeByte = calResults_for_vcdac_start_high[FS_VCO4_INDEX];
+        //cc112xSpiWriteReg(CC112X_FS_VCO4, &writeByte, 1);
+        RF_Write_Reg(CC1120_FS_VCO4, writeByte);
+        writeByte = calResults_for_vcdac_start_high[FS_CHP_INDEX];
+        //cc112xSpiWriteReg(CC112X_FS_CHP, &writeByte, 1);
+        RF_Write_Reg(CC1120_FS_CHP, writeByte);
+    }
+    else 
+    {
+        writeByte = calResults_for_vcdac_start_mid[FS_VCO2_INDEX];
+        //cc112xSpiWriteReg(CC112X_FS_VCO2, &writeByte, 1);
+        RF_Write_Reg(CC1120_FS_VCO2, writeByte);
+        writeByte = calResults_for_vcdac_start_mid[FS_VCO4_INDEX];
+        //cc112xSpiWriteReg(CC112X_FS_VCO4, &writeByte, 1);
+        RF_Write_Reg(CC1120_FS_VCO4, writeByte);
+        writeByte = calResults_for_vcdac_start_mid[FS_CHP_INDEX];
+        //cc112xSpiWriteReg(CC112X_FS_CHP, &writeByte, 1);
+        RF_Write_Reg(CC1120_FS_CHP, writeByte);
+    }
+}
+
+void print_preferredSettings868_size(void)
+{
+    printf("%d\n", sizeof(preferredSettings868));
+}

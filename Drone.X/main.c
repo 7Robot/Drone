@@ -63,7 +63,9 @@ int main(void) {
             } else if (c == 'a') {
                 I2C_Try_Accel(); 
             }
-            
+            else if (c == 'p') {
+                print_preferredSettings868_size();
+            }
             
             
             

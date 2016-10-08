@@ -75,17 +75,19 @@ int main(void) {
                 GPS_do_Off();
             } else if (c == 'G') {
                 Get_Last_GPS_Messages();
-            }  else if (c == 'q') {
-                GPS_Querry_Message();
+            //}  else if (c == 'q') {
+                //GPS_Querry_Message();
             } else if (c == 'f') {
                 GPS_Go_Fast();
             } else if (c == 't') {
                 GPS_try_baudrates();
             } 
-            else if (c == 'q' || c == 'Q'){
-                break;
+            else if ( c == 's'){
+                GPS_Go_Slow();
             }
-            
+            else if ( c == 'S'){
+                PIC_Go_Slow();
+            }
             /*else if (c == 'r') {
                 RF_Reset();
             } else if (c == 'R') {
@@ -112,6 +114,6 @@ int main(void) {
     }
     
     
-    GPS_Send_Off();
+    
     return 0;
 }

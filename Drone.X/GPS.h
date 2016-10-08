@@ -19,7 +19,7 @@
 
 #define BRGBAUDRATEGPS (((FCY / BAUDRATEGPS) / 16) - 1)
 
-#define BRGBAUDRATEGPS_BASE (((FCY / 4800) / 16) - 1)
+#define BRGBAUDRATE_BASE_GPS (((FCY / 4800) / 16) - 1)
 
 #define UART_GPS_SIZE_BUFF 200
 
@@ -41,9 +41,9 @@ void GPS_Send_Off(void);
 void GPS_do_Off(void);
 void GPS_Send_On_Pin(void);
 void Get_Last_GPS_Messages(void);
-void GPS_Querry_Message(void);
+//void GPS_Querry_Message(void);
 void GPS_Go_Fast(void);
 void GPS_Go_Slow(void);
 void GPS_try_baudrates (void);
-
+void PIC_Go_Slow();
 #endif

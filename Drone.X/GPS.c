@@ -172,8 +172,7 @@ u8 Get_Uart_GPS(char *c) {
     }
 }
 
-void GPS_Send_Off(void)
-{
+void GPS_Send_Off(void) {
     u8 Count = 0;
     GPS_Transmit_NMEA_Command("PSRF117,16");
     while ((Count < 250) && (!Is_GPS_TX_Empty())) {

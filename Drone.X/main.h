@@ -20,9 +20,6 @@ typedef uint8_t u8;
 
 
 
-
-
-
 #include "ADC.h"
 #include "GPS.h"
 #include "I2C.h"

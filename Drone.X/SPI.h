@@ -4,23 +4,24 @@
 
 
 void SPI_Init(void);
-void RF_Reset(void);
+void RF_Reset_Cmd(void);
 
 u8 RF_Get_Status(void);
 u8 RF_Read_Reg (u16 reg_addr);
 u8 RF_Send_Command(u8 cmd);
 void RF_Write_Reg(u16 reg_addr, u8 Data);
 
-void RF_Read_All_Reg (void);
-void RF_ON (void);
-void RF_Send_Packet(void);
-void RF_Wait_For_Packet(void);
+void RF_Read_All_Reg_Cmd (void);
+void RF_Init_Cmd (void);
+void RF_Send_Packet_Cmd(void);
+void RF_Wait_For_Packet_Cmd(void);
 
 void RF_Manual_Calib(u8 verbose);
 
-static void manualCalibration(void);    // copié collé exemple...
+void manualCalibration(u8 verbose);    // copié collé exemple...
 
-void print_preferredSettings868_size(void);
+
+void Test_Config_SPI_Cmd(void);
 
 
 /* configuration registers */

@@ -92,7 +92,7 @@ u8 I2C_Read(u8 add, u8  reg, u8 nb_data, u8 *data)
     return 0;
 }
 
-void I2C_Try_All(void)
+void I2C_Try_All_Cmd(void)
 {
     
     u16 add;
@@ -133,7 +133,7 @@ void I2C_Try_All(void)
     I2C1CONbits.I2CEN = 1;  // active l'interface
 }
 
-void Alti_Read(void)
+void Alti_Read_Cmd(void)
 {
     u8 i;
     char c;
@@ -220,7 +220,7 @@ void Alti_Read(void)
 
 
 
-void I2C_Try_Accel (void)
+void I2C_Try_Accel_Cmd (void)
 {
     u8 Buffer[20];
     char c;

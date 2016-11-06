@@ -51,17 +51,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c GPS.c SPI.c
+SOURCEFILES_QUOTED_IF_SPACED=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c GPS.c SPI.c Interpreteur.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o ${OBJECTDIR}/GPS.o ${OBJECTDIR}/SPI.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/Config_bits.o.d ${OBJECTDIR}/interrupts.o.d ${OBJECTDIR}/traps.o.d ${OBJECTDIR}/Timer_ms.o.d ${OBJECTDIR}/Init_Clk.o.d ${OBJECTDIR}/UART_PC.o.d ${OBJECTDIR}/ADC.o.d ${OBJECTDIR}/I2C.o.d ${OBJECTDIR}/GPS.o.d ${OBJECTDIR}/SPI.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o ${OBJECTDIR}/GPS.o ${OBJECTDIR}/SPI.o ${OBJECTDIR}/Interpreteur.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/Config_bits.o.d ${OBJECTDIR}/interrupts.o.d ${OBJECTDIR}/traps.o.d ${OBJECTDIR}/Timer_ms.o.d ${OBJECTDIR}/Init_Clk.o.d ${OBJECTDIR}/UART_PC.o.d ${OBJECTDIR}/ADC.o.d ${OBJECTDIR}/I2C.o.d ${OBJECTDIR}/GPS.o.d ${OBJECTDIR}/SPI.o.d ${OBJECTDIR}/Interpreteur.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o ${OBJECTDIR}/GPS.o ${OBJECTDIR}/SPI.o
+OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o ${OBJECTDIR}/GPS.o ${OBJECTDIR}/SPI.o ${OBJECTDIR}/Interpreteur.o
 
 # Source Files
-SOURCEFILES=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c GPS.c SPI.c
+SOURCEFILES=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c GPS.c SPI.c Interpreteur.c
 
 
 CFLAGS=
@@ -165,6 +165,13 @@ ${OBJECTDIR}/SPI.o: SPI.c  nbproject/Makefile-${CND_CONF}.mk
 	${MP_CC} $(MP_EXTRA_CC_PRE)  SPI.c  -o ${OBJECTDIR}/SPI.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/SPI.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off  
 	@${FIXDEPS} "${OBJECTDIR}/SPI.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
+${OBJECTDIR}/Interpreteur.o: Interpreteur.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/Interpreteur.o.d 
+	@${RM} ${OBJECTDIR}/Interpreteur.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  Interpreteur.c  -o ${OBJECTDIR}/Interpreteur.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/Interpreteur.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/Interpreteur.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
 else
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
@@ -242,6 +249,13 @@ ${OBJECTDIR}/SPI.o: SPI.c  nbproject/Makefile-${CND_CONF}.mk
 	@${RM} ${OBJECTDIR}/SPI.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  SPI.c  -o ${OBJECTDIR}/SPI.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/SPI.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off  
 	@${FIXDEPS} "${OBJECTDIR}/SPI.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/Interpreteur.o: Interpreteur.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/Interpreteur.o.d 
+	@${RM} ${OBJECTDIR}/Interpreteur.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  Interpreteur.c  -o ${OBJECTDIR}/Interpreteur.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/Interpreteur.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/Interpreteur.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif
 

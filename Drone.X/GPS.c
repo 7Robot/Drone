@@ -12,7 +12,6 @@ volatile u16 i_RX_GPS_Buff = 0;
 
 void UART_GPS_Init(void)
 {
-    
     char loc_str[30];
     OpenUART2(UART_EN & UART_IDLE_CON & UART_IrDA_DISABLE & UART_MODE_FLOW
         & UART_UEN_00 & UART_DIS_WAKE & UART_DIS_LOOPBACK
@@ -21,7 +20,7 @@ void UART_GPS_Init(void)
           UART_INT_TX_BUF_EMPTY & UART_IrDA_POL_INV_ZERO
         & UART_SYNC_BREAK_DISABLED & UART_TX_ENABLE & UART_TX_BUF_NOT_FUL & UART_INT_RX_CHAR
         & UART_ADR_DETECT_DIS & UART_RX_OVERRUN_CLEAR,
-          BRGBAUDRATEGPS_BASE);
+          BRGBAUDRATE_BASE_GPS);
 
     /*
     ConfigIntUART2(UART_RX_INT_PR6 & UART_RX_INT_EN
@@ -51,14 +50,7 @@ void UART_GPS_Init(void)
     while (!Is_GPS_TX_Empty());
     Delay_ms(10);
     U2BRG = BAUDRATEGPS;
-            
-    
-    
-    /*
-    TRISCbits.TRISC4 = 1;
-    _U2RXR = 20;
-    TRISCbits.TRISC3 = 1;
-    */
+           
 }
 
 
@@ -172,7 +164,7 @@ u8 Get_Uart_GPS(char *c) {
     }
 }
 
-void GPS_Send_Off(void)
+void GPS_Send_Off_Cmd(void)
 {
     u8 Count = 0;
     GPS_Transmit_NMEA_Command("PSRF117,16");
@@ -190,7 +182,7 @@ void GPS_Send_Off(void)
     printf("GPS Rst !\r\n");
 }
 
-void GPS_do_Off(void)
+void GPS_Send_OFF_Pin_Cmd(void)
 {
     printf("High ON_OFF for 300 ms\r\n");
     ON_OFF_GPS = 1;
@@ -202,7 +194,7 @@ void GPS_do_Off(void)
     printf("GPS Rst !\r\n");
 }
 
-void GPS_Send_On_Pin(void)
+void GPS_Send_On_Pin_Cmd(void)
 {
     printf("Enable GPS\r\n");
     NRST_GPS = 1;
@@ -215,7 +207,7 @@ void GPS_Send_On_Pin(void)
     printf("GPS is running !\r\n");
     
 }
-
+/*
 void Get_Last_GPS_Messages(void)
 {
     char c;
@@ -226,19 +218,12 @@ void Get_Last_GPS_Messages(void)
     } else {
         printf ("Nothing in buffer\r\n");
     }
-}
+}*/
 
-void GPS_Querry_Message(void)
-{
-    GPS_Transmit_NMEA_Command("PSRF107,00,01,00,01");
-    while (!Is_GPS_TX_Empty());
-    printf("sent !\r\n");
-}
-
-void GPS_Go_Fast(void)
+void GPS_Go_Fast_Cmd(void)
 {
     char loc_str[30];
-    U2BRG = (((FCY / 4800) / 16) - 1);  // mise au baudrate par defaut du GPS
+    U2BRG = BRGBAUDRATE_BASE_GPS;  // mise au baudrate par defaut du GPS
     sprintf(&loc_str[0],"PSRF100,1,%d,8,1,0", BAUDRATEGPS );
     GPS_Transmit_NMEA_Command(&loc_str[0]);
     while(!Is_GPS_TX_Empty());
@@ -248,15 +233,15 @@ void GPS_Go_Fast(void)
     U2BRG = BRGBAUDRATEGPS;
 }
 
-void GPS_Go_Slow(void)
+void GPS_Go_Slow_Cmd(void)
 {
     GPS_Transmit_NMEA_Command("PSRF100,1,4800,8,1,0");
     while(!Is_GPS_TX_Empty());
     Delay_ms(200);
-    U2BRG = (((FCY / 4800) / 16) - 1);  // mise au baudrate par defaut du GPS
+    U2BRG = BRGBAUDRATE_BASE_GPS;  // mise au baudrate par defaut du GPS
 }
 
-void GPS_try_baudrates (void)
+void GPS_try_baudrates_Cmd (void)
 {
     u32 loc_baud;
     char loc_str[30];
@@ -276,7 +261,7 @@ void GPS_try_baudrates (void)
         //GPS_Transmit_NMEA_Command("PSRF100,1,4800,8,1,0");
         //while(!Is_GPS_TX_Empty());
         Delay_ms(5);
-        // locbaud + 2%
+        // locbaud + 1%
         loc_baud = (loc_baud * 101) / 100;
     }
     U2BRG = BRGBAUDRATEGPS;

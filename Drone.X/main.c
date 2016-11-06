@@ -45,68 +45,14 @@ int main(void) {
     Delay_ms(500);
     printf("Running!\n");
     while (1) {
+        
         if (Get_Uart(&c)) {
-            LED1 = !LED1;
-            printf("%c\n",c);
-            if (c == 'l') {
-                for (j = 0; j< 101; j++) {
-                    do { i++; } while (i); }
-                LED1 = !LED1;
-            } else if (c == '5') {
-                printf("5V = %f\n", Get_V_5V());
-            } else if (c == 'v') {
-                printf("Vbat = %f\n", Get_V_Vbat());
-            } else if (c == 'I') {
-                I2C_Try_All();
-            }else if (c == 'e') {
-                Alti_Read(); 
-            } else if (c == 'a') {
-                I2C_Try_Accel(); 
-            }
-            else if (c == 'p') {
-                print_preferredSettings868_size();
-            }
-            
-            
-            
-            /* else if (c == 'g') {
-                GPS_Send_On_Pin();
-            } else if (c == 'o') {
-                GPS_Send_Off();
-            } else if (c == 'O') {
-                GPS_do_Off();
-            } else if (c == 'G') {
-                Get_Last_GPS_Messages();
-            }  else if (c == 'q') {
-                GPS_Querry_Message();
-            } else if (c == 'f') {
-                GPS_Go_Fast();
-            } else if (c == 't') {
-                GPS_try_baudrates();
-            } 
-            */
-            
-            else if (c == 'r') {
-                RF_Reset();
-            } else if (c == 'R') {
-                RF_Read_All_Reg();
-            } else if (c == 's') {
-                RF_ON();
-            } else if (c == 'S') {
-                RF_Send_Packet();
-            }  else if (c == 'W') {
-                RF_Wait_For_Packet();
-            }   else if (c == '?') {
-                printf("RF Stat : 0x%02X\n", RF_Get_Status());
-                printf("MODEM Stat 1 : 0x%02X\n", RF_Read_Reg(CC1120_MODEM_STATUS1));
-                printf("MODEM Stat 0 : 0x%02X\n", RF_Read_Reg(CC1120_MODEM_STATUS1));
-            } 
-            
-            
+            LED1 = 1;
+            Interp(c);
+            LED1 = 0;
         }
         if (Mode_Urgence) {
-            GPS_Send_Off();
-            //while (1) ;
+            GPS_Send_Off_Cmd();
         }
         
     }

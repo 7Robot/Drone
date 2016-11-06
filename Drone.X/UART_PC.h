@@ -16,13 +16,14 @@
 
 #define BRGBAUDRATEPC (((FCY / BAUDRATEPC) / 16) - 1)
 
-#define UART_PC_SIZE_BUFF 100
+#define UART_PC_SIZE_BUFF 300
 
 void UART_PC_Init(void);
 //void Transmit_String(char *str);
 //int	puts(const char *symbol);
 void Transmit_Char(char symbol);
 u8 Is_TX_Empty(void);
+void Wait_Transmited(void);
 
 //int putchar (int c);
 int write(int handle, void *buffer, unsigned int len);

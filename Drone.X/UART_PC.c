@@ -62,6 +62,9 @@ u8 Is_TX_Empty(void)
     return !IEC0bits.U1TXIE;
 }
 
+void Wait_Transmited(void)
+{   while(!Is_TX_Empty());  }
+
 int write(int handle, void *buffer, unsigned int len)
 {
     unsigned int i;

@@ -2,7 +2,6 @@
 #ifndef __GPS_H
 #define __GPS_H
 
-
 //#define BAUDRATEGPS 1000000
 //#define BAUDRATEGPS 500000
 //#define BAUDRATEGPS 400000
@@ -46,4 +45,19 @@ void GPS_Go_Fast(void);
 void GPS_Go_Slow(void);
 void GPS_try_baudrates (void);
 void PIC_Go_Slow();
+
+
+typedef struct coordGPS {
+    int   Lat_Deg;
+    int   Lat_Min;
+    float Lat_Sec;
+    char  Lat_Cardinal;
+    int   Long_Deg;
+    int   Long_Min;
+    float Long_Sec;
+    char  Long_Cardinal;
+    float Altitude;
+} coordGPS;
+
+int Decode_GPS ( char *str, coordGPS*);
 #endif

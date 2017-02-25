@@ -1,0 +1,24 @@
+type gps:
+
+* lat en degre et décimale de degré. positif et négatif. (-90 .. 90)
+	utilisation d'un double
+
+* long en degré et décimale de degré. positif et négatif (-180 .. 180)
+	utilisation d'un double
+
+* altitude en mètre (float).
+
+fonctionnalités gps:
+
+* vérifier la checksum
+* calcul de la différence d'altitude, x et y
+* demande les coordonnées de l'autre carte (appel aux fonctionalités RF)
+* traitement gps:
+	- récupère les caracteres du buffer tournant dans un autre buffer
+	- quand on obtient le caractere fin de chaine, on déclenche l'analyse 
+	- celle-ci affiche les chaînes "intéressantes" et stocke la nouvelle coordonnée GPS
+* supprimer l'affichage automatique des trams gps (_U2TXInterrupt)
+
+
+Dans le main, ajouter dans la boucle la fonction de traitement gps :
+	

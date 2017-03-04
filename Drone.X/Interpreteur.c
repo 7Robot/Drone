@@ -15,7 +15,10 @@ const Command Command_List[] = {
  
  {  "ALLI2C"    ,I2C_Try_All_Cmd},
  {  "ALTI"      ,Alti_Read_Cmd},
- {  "ACCEL"     ,I2C_Try_Accel_Cmd},
+ //{  "TACCEL"    ,I2C_Try_Accel_Cmd},
+ {  "ACCEL"     ,Accel_Print_Cmd},
+ 
+ 
  
  {  "GPSON"     ,GPS_Send_On_Pin_Cmd},
  {  "GPSOFF"    ,GPS_Send_OFF_Pin_Cmd},
@@ -30,9 +33,12 @@ const Command Command_List[] = {
  {  "RFREAD"    ,RF_Read_All_Reg_Cmd},
  {  "RFSEND"    ,RF_Send_Packet_Cmd},
  {  "RFWAIT"    ,RF_Wait_For_Packet_Cmd},
- // {  "RFSTATUS"  ,RF_Print_Status_Cmd},
- {  "RFSPI"     ,Test_Config_SPI_Cmd},
  
+ // {  "RFSTATUS"  ,RF_Print_Status_Cmd},
+ // {  "RFSPI"     ,Test_Config_SPI_Cmd},
+ 
+ {  "PRINTCMD"  ,Print_All_CMD_Cmd},
+ {  "HELP"      ,Print_All_CMD_Cmd},
  
 };
 
@@ -136,5 +142,11 @@ u8 Get_Param_Float (float *retour)
     return 0;
 }
 
-
-
+void Print_All_CMD_Cmd (void)
+{
+    u16 i;
+    for (i = 0; i < Command_List_Length; i++) {
+        printf("%s\n", Command_List[i].Name);
+        Wait_Transmited();
+    }
+}

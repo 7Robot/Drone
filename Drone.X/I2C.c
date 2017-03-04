@@ -3,6 +3,11 @@
 
 #include "main.h"
 
+// ACCEL
+int16_t ax, ay, az;
+int16_t gx, gy, gz;
+int16_t temp;
+int16_t mx, my, mz;
 
 void I2C_Init (void)
 {
@@ -13,7 +18,6 @@ void I2C_Init (void)
     
     I2C1BRG = BRG;      // regle le baudrate
     I2C1CONbits.I2CEN = 1;  // active l'interface
-    
 }
 
 u8 I2C_Write(u8 add, u8 reg, u8 nb_data, u8 *data)
@@ -133,19 +137,42 @@ void I2C_Try_All_Cmd(void)
     I2C1CONbits.I2CEN = 1;  // active l'interface
 }
 
+
+    /*
+void Alti_Init (void)
+{    
+    u16 EEPROM[8];
+    u8 i;
+    u8 tab8[2];
+    u32 val32;
+    for (i = 0; i < 8; i++) {
+        I2C_Read(ALTI_ADD, 0xA0+2*i, 2, &tab8[0]);
+        val32 = (((u16)(tab8[0])) << 8) + tab8[1];
+        EEPROM[i] = val32;
+    }
+    
+}*/
+
 void Alti_Read_Cmd(void)
 {
     u8 i;
-    char c;
     u16 EEPROM[8];
+    char c;
     u8 tab8[4];
     u32 D1, D2, TEMP, Dt, val32;
     uint64_t val64, OFF, SENS, val64b, PRESS64;
+    
     printf("EEPROM\n");
     for (i = 0; i < 8; i++) {
         I2C_Read(ALTI_ADD, 0xA0+2*i, 2, &tab8[0]);
         val32 = (((u16)(tab8[0])) << 8) + tab8[1];
         EEPROM[i] = val32;
+        printf("0x%04lX\n", val32 );
+        Delay_ms(50);
+    }    
+    printf("EEPROM\n");
+    for (i = 0; i < 8; i++) {
+        I2C_Read(ALTI_ADD, 0xA0+2*i, 2, &val32);
         printf("0x%04lX\n", val32 );
         Delay_ms(50);
     }
@@ -220,18 +247,9 @@ void Alti_Read_Cmd(void)
 
 
 
-void I2C_Try_Accel_Cmd (void)
+void Accel_Init(void)
 {
-    u8 Buffer[20];
-    char c;
-    u8 i, val8;
-    u16 nb_try = 0;
-    int16_t ax, ay, az;
-    int16_t gx, gy, gz;
-    int16_t temp;
-    int16_t mx, my, mz;
-    
-    
+    u8 val8;
     // Configure gyroscope range
     val8 = GYRO_FULL_SCALE_2000_DPS;
     I2C_Write(MPU9250_ADDRESS, 27, 1, &val8);
@@ -241,74 +259,92 @@ void I2C_Try_Accel_Cmd (void)
     // Set by pass mode for the magnetometers
     val8 = 0x02;
     I2C_Write(MPU9250_ADDRESS, 0x37, 1, &val8);
-    
-    
-    
-    while (!(Get_Uart(&c))) {
-        I2C_Read(MPU9250_ADDRESS, 0x3B, 14, &Buffer[0]);
-        
-        // Accelerometer
-        ax = -(Buffer[0]<<8 | Buffer[1]);
-        ay = -(Buffer[2]<<8 | Buffer[3]);
-        az =   Buffer[4]<<8 | Buffer[5];
-        // temp
-        temp = Buffer[6]<<8 | Buffer[7];
-        // Gyroscope
-        gx = -(Buffer[8]<<8 | Buffer[9]);
-        gy = -(Buffer[10]<<8 | Buffer[11]);
-        gz =   Buffer[12]<<8 | Buffer[13];
-        
-        // Request first magnetometer single measurement
-        val8 = 0x01;
-        I2C_Write(MAG_ADDRESS, 0x0A, 1, &val8);
-        // va voir si on peut lire le magneto
-        i = 0;
-        nb_try = 0;
-        while ((!(i&0x01)) && (nb_try < 10)){
-            I2C_Read(MAG_ADDRESS, 0x02, 1, &i);
-            nb_try ++;
-            Delay_ms(5);
-        }
-        
-        // Read magnetometer data  
-        I2C_Read(MAG_ADDRESS,0x03,6,&Buffer[0]);
-        
-        // Magnetometer
-        mx = -(Buffer[3]<<8 | Buffer[2]);
-        my = -(Buffer[1]<<8 | Buffer[0]);
-        mz = -(Buffer[5]<<8 | Buffer[4]);
-        
-        printf ("Accel : \n");
-        printf("\tax : %d", ax);
-        while (!Is_TX_Empty());
-        printf("\tay : %d", ay);
-        while (!Is_TX_Empty());
-        printf("\taz : %d\n", az);
-        while (!Is_TX_Empty());
-        
-        printf ("Gyro : \n");
-        printf("\tgx : %d", gx);
-        while (!Is_TX_Empty());
-        printf("\tgy : %d", gy);
-        while (!Is_TX_Empty());
-        printf("\tgz : %d\n", gz);
-        while (!Is_TX_Empty());
-        
-        printf ("Magneto : \n");
-        printf("\tmx : %d", mx);
-        while (!Is_TX_Empty());
-        printf("\tmy : %d", my);
-        while (!Is_TX_Empty());
-        printf("\tmz : %d\n", mz);
-        while (!Is_TX_Empty());
-        
-        printf("Temp : %d\n",temp);
-        while (!Is_TX_Empty());
-        printf ("\n\n");
-        Delay_ms(50);
-    }
+}
 
+void Accel_Loop (void)
+{
+    static u32 Last_Timer = 0;
+    static u8 Etat_Accel = 0;
+    static u8 Max_Time;
+    u8 val8;
+    u8 Buffer[20];
     
-    
-    
+    switch (Etat_Accel) {
+        case 0:
+            I2C_Read(MPU9250_ADDRESS, 0x3B, 14, &Buffer[0]);
+            Etat_Accel = 1;
+            break;
+        case 1:
+            ax = -(Buffer[0]<<8 | Buffer[1]);
+            ay = -(Buffer[2]<<8 | Buffer[3]);
+            az =   Buffer[4]<<8 | Buffer[5];
+            // temp
+            temp = Buffer[6]<<8 | Buffer[7];
+            // Gyroscope
+            gx = -(Buffer[8]<<8 | Buffer[9]);
+            gy = -(Buffer[10]<<8 | Buffer[11]);
+            gz =   Buffer[12]<<8 | Buffer[13];
+            Etat_Accel = 2;
+            break;
+        case 2:
+            val8 = 0x01;
+            I2C_Write(MAG_ADDRESS, 0x0A, 1, &val8);
+            Max_Time = 0;
+            Last_Timer = Compteur_ms_1;
+            Etat_Accel = 3;
+            break;
+        case 3:
+            if ((Last_Timer - Compteur_ms_1) > 5) {
+                val8 = 0;
+                I2C_Read(MAG_ADDRESS, 0x02, 1, &val8);
+                if (val8 & 0x01)
+                    Etat_Accel = 4;
+                else {
+                    Last_Timer = Compteur_ms_1;
+                    Max_Time ++;
+                    if (Max_Time > 10)
+                        Etat_Accel = 5;
+                }
+            }
+            break;
+        case 4:
+            I2C_Read(MAG_ADDRESS,0x03,6,&Buffer[0]);
+            // Magnetometer
+            mx = -(Buffer[3]<<8 | Buffer[2]);
+            my = -(Buffer[1]<<8 | Buffer[0]);
+            mz = -(Buffer[5]<<8 | Buffer[4]);
+            Etat_Accel = 5;
+            Last_Timer = Compteur_ms_1;
+            break;
+        case 5:
+            if ((Last_Timer - Compteur_ms_1) > 20)
+                 Etat_Accel = 0;
+            break;
+        default:
+            Etat_Accel = 0;
+    }
+}
+
+void Accel_Print_Cmd (void)
+{
+    printf ("Accel : \n");
+    printf("\tax : %d", ax);
+    printf("\tay : %d", ay);
+    printf("\taz : %d\n", az);
+    Wait_Transmited();
+
+    printf ("Gyro : \n");
+    printf("\tgx : %d", gx);
+    printf("\tgy : %d", gy);
+    printf("\tgz : %d\n", gz);
+    Wait_Transmited();
+
+    printf ("Magneto : \n");
+    printf("\tmx : %d", mx);
+    printf("\tmy : %d", my);
+    printf("\tmz : %d\n", mz);
+    Wait_Transmited();
+
+    printf("Temp : %d\n",temp);
+    Wait_Transmited();
 }

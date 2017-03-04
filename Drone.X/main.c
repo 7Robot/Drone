@@ -12,8 +12,6 @@
 volatile u8 Mode_Urgence = 0;
 
 int main(void) {
-    u16 i = 1;
-    u8 j;
     char c;
     NRST_GPS = 0;
     NRST_GPS_T = 0; // active le RST du GPS
@@ -31,6 +29,7 @@ int main(void) {
     Timer_Ms_Init();
     ADC_Init();
     I2C_Init();
+    //Accel_Init();
     SPI_Init();
     
     
@@ -45,7 +44,6 @@ int main(void) {
     Delay_ms(500);
     printf("Running!\n");
     while (1) {
-        
         if (Get_Uart(&c)) {
             LED1 = 1;
             Interp(c);
@@ -54,10 +52,8 @@ int main(void) {
         if (Mode_Urgence) {
             GPS_Send_Off_Cmd();
         }
-        
+        Accel_Loop();
     }
-    
-    
     
     return 0;
 }

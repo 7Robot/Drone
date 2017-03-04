@@ -39,4 +39,9 @@ void Alti_Read_Cmd(void);
 
 void I2C_Try_Accel_Cmd (void);
 
+
+void Accel_Init(void);
+void Accel_Loop (void);
+void Accel_Print_Cmd (void);
+
 #endif

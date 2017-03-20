@@ -36,7 +36,7 @@ void UART_PC_Init(void)
 
 void __attribute__((interrupt, auto_psv)) _U1TXInterrupt(void) {
     static u16 i_TX_Transmit = 0;
-
+	// TODO : ajouter surveillance de remplissage de FIFO : remplir à fond...
     IFS0bits.U1TXIF = 0;
     U1TXREG = TX_PC_Buff[i_TX_Transmit];
     i_TX_Transmit++;
@@ -49,6 +49,8 @@ void __attribute__((interrupt, auto_psv)) _U1TXInterrupt(void) {
 
 void __attribute__((interrupt, auto_psv)) _U1RXInterrupt(void) {
     u16 i = i_RX_PC_Buff;
+	// TODO : ajouter surveillance de la FIFO de réception : on peut (peut-être) avoir recu plusieurs octets par IT...
+	// donc récuperer jusqu'à ce que la FIFO soit vide
     RX_PC_Buff[i] = U1RXREG;
     i++;
     if (i == UART_PC_SIZE_BUFF)

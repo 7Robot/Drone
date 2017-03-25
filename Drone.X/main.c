@@ -12,7 +12,7 @@
 volatile u8 Mode_Urgence = 0;
 
 int main(void) {
-    char c;
+    u8 c;
     NRST_GPS = 0;
     NRST_GPS_T = 0; // active le RST du GPS
     

@@ -3,6 +3,7 @@
 #include "main.h"
 //#include <libpic30.h>
 #include <uart.h>
+#include <p33FJ128MC804.h>
 
 volatile u8 TX_PC_Buff[UART_PC_SIZE_BUFF];
 volatile u16 i_TX_PC_Buff = 0;
@@ -22,9 +23,10 @@ void UART_PC_Init(void)
         & UART_ADR_DETECT_DIS & UART_RX_OVERRUN_CLEAR,
           BRGBAUDRATEPC);
 
-
-    ConfigIntUART1(UART_RX_INT_PR7 & UART_RX_INT_EN
-                 & UART_TX_INT_PR7 & UART_TX_INT_DIS);
+    
+    // vu qu'on peut gerer 4 transmits à la fois, c'est plus une IT super urgente..
+    ConfigIntUART1(UART_RX_INT_PR4 & UART_RX_INT_EN
+                 & UART_TX_INT_PR4 & UART_TX_INT_DIS);
     
     IFS0bits.U1TXIF = 1;    // init le flag 
     
@@ -34,27 +36,34 @@ void UART_PC_Init(void)
 }
 
 
-void __attribute__((interrupt, auto_psv)) _U1TXInterrupt(void) {
+void __attribute__((interrupt, auto_psv)) _U1TXInterrupt(void)
+{
     static u16 i_TX_Transmit = 0;
-	// TODO : ajouter surveillance de remplissage de FIFO : remplir Ã  fond...
+    // cette IT déclenche quand le buffer (FIFO de 4 places) devient vide
+    // par contre, le shift register (ce qui est en train de transmètre), n'est pas forcément vide
+    // on rajoute des choses dans la FIFO tant qu'elle n'est pas pleine, et tant que l'on a qqchose à envoyer
+    
+    while ((i_TX_Transmit != i_TX_PC_Buff) && (!U1STAbits.UTXBF)) {
+        U1TXREG = TX_PC_Buff[i_TX_Transmit];
+        i_TX_Transmit++;
+        if (i_TX_Transmit == UART_PC_SIZE_BUFF)
+            i_TX_Transmit = 0;
+    }
     IFS0bits.U1TXIF = 0;
-    U1TXREG = TX_PC_Buff[i_TX_Transmit];
-    i_TX_Transmit++;
-    if (i_TX_Transmit == UART_PC_SIZE_BUFF)
-        i_TX_Transmit = 0;
 
     if (i_TX_Transmit == i_TX_PC_Buff) // si on a tout transmit, on s'arrete
         IEC0bits.U1TXIE = 0;
 }
 
-void __attribute__((interrupt, auto_psv)) _U1RXInterrupt(void) {
+void __attribute__((interrupt, auto_psv)) _U1RXInterrupt(void)
+{
     u16 i = i_RX_PC_Buff;
-	// TODO : ajouter surveillance de la FIFO de rÃ©ception : on peut (peut-Ãªtre) avoir recu plusieurs octets par IT...
-	// donc rÃ©cuperer jusqu'Ã  ce que la FIFO soit vide
-    RX_PC_Buff[i] = U1RXREG;
-    i++;
-    if (i == UART_PC_SIZE_BUFF)
-        i = 0;
+    while (!U1STAbits.URXDA) {      // tant que la FIFO de réception n'est pas vide
+        RX_PC_Buff[i] = U1RXREG;
+        i++;
+        if (i == UART_PC_SIZE_BUFF)
+            i = 0;
+    }
     i_RX_PC_Buff = i;
     IFS0bits.U1RXIF = 0;
 }
@@ -70,7 +79,7 @@ void Wait_Transmited(void)
 int write(int handle, void *buffer, unsigned int len)
 {
     unsigned int i;
-    char *buff = buffer;
+    u8 *buff = buffer;
  //   if (handle == 0) {
         for (i = 0; i < len; i ++) {
             Transmit_Char(*buff);
@@ -81,7 +90,7 @@ int write(int handle, void *buffer, unsigned int len)
     return len;
 }
 
-void Transmit_Char(char symbol) {
+void Transmit_Char(u8 symbol) {
 
     u8 i = i_TX_PC_Buff;
     TX_PC_Buff[i] = symbol;
@@ -99,7 +108,7 @@ void Transmit_Char(char symbol) {
 //    printf ("%d\n", i);
 //}
 
-u8 Get_Uart(char *c) {
+u8 Get_Uart(u8 *c) {
     static u16 i_RX = 0;
 
     if (i_RX != i_RX_PC_Buff) { // si il y a qq chose dans le buffer

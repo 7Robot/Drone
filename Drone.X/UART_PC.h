@@ -21,7 +21,7 @@
 void UART_PC_Init(void);
 //void Transmit_String(char *str);
 //int	puts(const char *symbol);
-void Transmit_Char(char symbol);
+void Transmit_Char(u8 symbol);
 u8 Is_TX_Empty(void);
 void Wait_Transmited(void);
 
@@ -29,7 +29,7 @@ void Wait_Transmited(void);
 int write(int handle, void *buffer, unsigned int len);
 // void test_transmit(void);
 
-u8 Get_Uart(char *c);
+u8 Get_Uart(u8 *c);
 
 
 

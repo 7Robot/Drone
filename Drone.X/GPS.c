@@ -26,8 +26,9 @@ void UART_GPS_Init(void)
     ConfigIntUART2(UART_RX_INT_PR6 & UART_RX_INT_EN
                  & UART_TX_INT_PR6 & UART_TX_INT_DIS);
     */
-    IPC7bits.U2RXIP = 6;
-    IPC7bits.U2TXIP = 6;
+    // on peut gerer plusieurs octets en 1 IT, ce n'est donc pas super urgent...
+    IPC7bits.U2RXIP = 3;
+    IPC7bits.U2TXIP = 3;
     IEC1bits.U2RXIE = 1;
     
     IFS1bits.U2TXIF = 1;    // init le flag 
@@ -56,24 +57,31 @@ void UART_GPS_Init(void)
 
 void __attribute__((interrupt, auto_psv)) _U2TXInterrupt(void) {
 
+    // cette IT déclenche quand le buffer (FIFO de 4 places) devient vide
+    // par contre, le shift register (ce qui est en train de transmètre), n'est pas forcément vide
+    // on rajoute des choses dans la FIFO tant qu'elle n'est pas pleine, et tant que l'on a qqchose à envoyer
+    
+    while ((i_TX_GPS_Transmit != i_TX_GPS_Buff) && (!U2STAbits.UTXBF)) {
+        U2TXREG = TX_GPS_Buff[i_TX_GPS_Transmit];
+        i_TX_GPS_Transmit++;
+        if (i_TX_GPS_Transmit == UART_GPS_SIZE_BUFF)
+            i_TX_GPS_Transmit = 0;
+    }
     IFS1bits.U2TXIF = 0;
-    U2TXREG = TX_GPS_Buff[i_TX_GPS_Transmit];
-    //printf("%c", TX_GPS_Buff[i_TX_GPS_Transmit]);
-    i_TX_GPS_Transmit++;
-    if (i_TX_GPS_Transmit == UART_GPS_SIZE_BUFF)
-        i_TX_GPS_Transmit = 0;
-
     if (i_TX_GPS_Transmit == i_TX_GPS_Buff) // si on a tout transmit, on s'arrete
         IEC1bits.U2TXIE = 0;
-
 }
 
-void __attribute__((interrupt, auto_psv)) _U2RXInterrupt(void) {
-    RX_GPS_Buff[i_RX_GPS_Buff] = U2RXREG;
-    printf("%c", RX_GPS_Buff[i_RX_GPS_Buff]);
-    i_RX_GPS_Buff++;
-    if (i_RX_GPS_Buff == UART_GPS_SIZE_BUFF)
-        i_RX_GPS_Buff = 0;
+void __attribute__((interrupt, auto_psv)) _U2RXInterrupt(void)
+{
+    // tant qu'on a pas tout récupéré, on lit...
+    while (!U2STAbits.URXDA) {
+        RX_GPS_Buff[i_RX_GPS_Buff] = U2RXREG;
+        printf("%c", RX_GPS_Buff[i_RX_GPS_Buff]);
+        i_RX_GPS_Buff++;
+        if (i_RX_GPS_Buff == UART_GPS_SIZE_BUFF)
+            i_RX_GPS_Buff = 0;
+    }
     IFS1bits.U2RXIF = 0;
 }
 

@@ -15,7 +15,7 @@ void ADC_Every_ms(void);
 float Get_V_5V (void);
 float Get_V_Vbat (void);
 
-void Print_5V_Cmd(void);
-void Print_VBAT_Cmd(void);
+u8 Print_5V_Cmd(void);
+u8 Print_VBAT_Cmd(void);
 
 #endif

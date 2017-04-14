@@ -61,28 +61,28 @@ void __attribute__((interrupt, auto_psv)) _U2TXInterrupt(void) {
     // par contre, le shift register (ce qui est en train de transmètre), n'est pas forcément vide
     // on rajoute des choses dans la FIFO tant qu'elle n'est pas pleine, et tant que l'on a qqchose à envoyer
     
+    IFS1bits.U2TXIF = 0;
     while ((i_TX_GPS_Transmit != i_TX_GPS_Buff) && (!U2STAbits.UTXBF)) {
         U2TXREG = TX_GPS_Buff[i_TX_GPS_Transmit];
         i_TX_GPS_Transmit++;
         if (i_TX_GPS_Transmit == UART_GPS_SIZE_BUFF)
             i_TX_GPS_Transmit = 0;
     }
-    IFS1bits.U2TXIF = 0;
     if (i_TX_GPS_Transmit == i_TX_GPS_Buff) // si on a tout transmit, on s'arrete
         IEC1bits.U2TXIE = 0;
 }
 
 void __attribute__((interrupt, auto_psv)) _U2RXInterrupt(void)
 {
-    // tant qu'on a pas tout récupéré, on lit...
-    while (!U2STAbits.URXDA) {
+    // tant qu'on a pas tout recupere, on lit...
+    IFS1bits.U2RXIF = 0;
+    while (U2STAbits.URXDA) {
         RX_GPS_Buff[i_RX_GPS_Buff] = U2RXREG;
         printf("%c", RX_GPS_Buff[i_RX_GPS_Buff]);
         i_RX_GPS_Buff++;
         if (i_RX_GPS_Buff == UART_GPS_SIZE_BUFF)
             i_RX_GPS_Buff = 0;
     }
-    IFS1bits.U2RXIF = 0;
 }
 
 u8 Is_GPS_TX_Empty(void)
@@ -172,7 +172,7 @@ u8 Get_Uart_GPS(char *c) {
     }
 }
 
-void GPS_Send_Off_Cmd(void)
+u8 GPS_Send_Off_Cmd(void)
 {
     u8 Count = 0;
     GPS_Transmit_NMEA_Command("PSRF117,16");
@@ -188,9 +188,10 @@ void GPS_Send_Off_Cmd(void)
     Delay_ms(1000);
     NRST_GPS = 0;
     printf("GPS Rst !\r\n");
+    return 0;
 }
 
-void GPS_Send_OFF_Pin_Cmd(void)
+u8 GPS_Send_OFF_Pin_Cmd(void)
 {
     printf("High ON_OFF for 300 ms\r\n");
     ON_OFF_GPS = 1;
@@ -200,9 +201,10 @@ void GPS_Send_OFF_Pin_Cmd(void)
     Delay_ms(2000);
     NRST_GPS = 0;
     printf("GPS Rst !\r\n");
+    return 0;
 }
 
-void GPS_Send_On_Pin_Cmd(void)
+u8 GPS_Send_On_Pin_Cmd(void)
 {
     printf("Enable GPS\r\n");
     NRST_GPS = 1;
@@ -213,7 +215,7 @@ void GPS_Send_On_Pin_Cmd(void)
     Delay_ms(300);
     ON_OFF_GPS = 0;
     printf("GPS is running !\r\n");
-    
+    return 0;
 }
 /*
 void Get_Last_GPS_Messages(void)
@@ -228,7 +230,7 @@ void Get_Last_GPS_Messages(void)
     }
 }*/
 
-void GPS_Go_Fast_Cmd(void)
+u8 GPS_Go_Fast_Cmd(void)
 {
     char loc_str[30];
     U2BRG = BRGBAUDRATE_BASE_GPS;  // mise au baudrate par defaut du GPS
@@ -239,17 +241,19 @@ void GPS_Go_Fast_Cmd(void)
     while(!Is_GPS_TX_Empty());
     Delay_ms(200);
     U2BRG = BRGBAUDRATEGPS;
+    return 0;
 }
 
-void GPS_Go_Slow_Cmd(void)
+u8 GPS_Go_Slow_Cmd(void)
 {
     GPS_Transmit_NMEA_Command("PSRF100,1,4800,8,1,0");
     while(!Is_GPS_TX_Empty());
     Delay_ms(200);
     U2BRG = BRGBAUDRATE_BASE_GPS;  // mise au baudrate par defaut du GPS
+    return 0;
 }
 
-void GPS_try_baudrates_Cmd (void)
+u8 GPS_try_baudrates_Cmd (void)
 {
     u32 loc_baud;
     char loc_str[30];
@@ -275,6 +279,6 @@ void GPS_try_baudrates_Cmd (void)
     U2BRG = BRGBAUDRATEGPS;
     
     printf ("\r                                 \r\n\n Done try baudrate\n");
-    
+    return 0;
 }
 

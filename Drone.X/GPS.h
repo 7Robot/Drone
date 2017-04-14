@@ -37,13 +37,13 @@ void GPS_Transmit_Char(char symbol);
 
 u8 Is_GPS_TX_Empty(void);
 
-void GPS_Send_Off_Cmd(void);
-void GPS_Send_OFF_Pin_Cmd(void);
-void GPS_Send_On_Pin_Cmd(void);
+u8 GPS_Send_Off_Cmd(void);
+u8 GPS_Send_OFF_Pin_Cmd(void);
+u8 GPS_Send_On_Pin_Cmd(void);
 //void Get_Last_GPS_Messages(void);
 //void GPS_Querry_Message(void);
-void GPS_Go_Fast_Cmd(void);
-void GPS_Go_Slow_Cmd(void);
-void GPS_try_baudrates_Cmd (void);
+u8 GPS_Go_Fast_Cmd(void);
+u8 GPS_Go_Slow_Cmd(void);
+u8 GPS_try_baudrates_Cmd (void);
 
 #endif

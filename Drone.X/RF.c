@@ -140,7 +140,7 @@ static const u16 SettingsTemp[][2] = {
 
 */
 
-void RF_Reset_Cmd(void)
+u8 RF_Reset_Cmd(void)
 {
     if (RF_Reset_Actif) {
         SPI_Init();
@@ -150,6 +150,7 @@ void RF_Reset_Cmd(void)
     }
     RST_RF = RF_Reset_Actif;
     RF_Reset_Actif = !RF_Reset_Actif;
+    return 0;
 }
 
 u8 RF_Get_Status(void)
@@ -227,7 +228,7 @@ u8 RF_Send_Command(u8 cmd)
     return val8;
 }
 
-void RF_Init_Cmd (void)
+u8 RF_Init_Cmd (void)
 {
     u16 i;
     u8 val8;
@@ -261,7 +262,7 @@ void RF_Init_Cmd (void)
     printf("Calibration : \n");
     manualCalibration(1);
     printf ("RF is working\n");
-    
+    return 0;
 }
 
 

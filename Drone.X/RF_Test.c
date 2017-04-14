@@ -5,7 +5,7 @@
 
 
 
-void RF_Read_All_Reg_Cmd(void)
+u8 RF_Read_All_Reg_Cmd(void)
 {
     u16 i = 0;
     
@@ -32,10 +32,11 @@ void RF_Read_All_Reg_Cmd(void)
         printf ("Extended Read 0x%02X : reg 0x%02X\n", (i&0xFF), RF_Read_Reg(i));
         Wait_Transmited();
     }
+    return 0;
 }
 
 
-void RF_Send_Packet_Cmd(void)
+u8 RF_Send_Packet_Cmd(void)
 {
     u16 Count;
     static u8 Count_Packet = 0;
@@ -109,9 +110,11 @@ void RF_Send_Packet_Cmd(void)
     printf ("MARC 0x%02X\n", val8);
     Delay_ms(50);
     
+    return 0;
 }
 
-void RF_Wait_For_Packet_Cmd(void)
+
+u8 RF_Wait_For_Packet_Cmd(void)
 {
     u8 val8, c;
     u8 i, buff;
@@ -185,6 +188,7 @@ void RF_Wait_For_Packet_Cmd(void)
     }
     
     printf("Leaving Receive Mode\n");
+    return 0;
 }
 
 

@@ -43,13 +43,13 @@ void __attribute__((interrupt, auto_psv)) _U1TXInterrupt(void)
     // par contre, le shift register (ce qui est en train de transmètre), n'est pas forcément vide
     // on rajoute des choses dans la FIFO tant qu'elle n'est pas pleine, et tant que l'on a qqchose à envoyer
     
+    IFS0bits.U1TXIF = 0;
     while ((i_TX_Transmit != i_TX_PC_Buff) && (!U1STAbits.UTXBF)) {
         U1TXREG = TX_PC_Buff[i_TX_Transmit];
         i_TX_Transmit++;
         if (i_TX_Transmit == UART_PC_SIZE_BUFF)
             i_TX_Transmit = 0;
     }
-    IFS0bits.U1TXIF = 0;
 
     if (i_TX_Transmit == i_TX_PC_Buff) // si on a tout transmit, on s'arrete
         IEC0bits.U1TXIE = 0;
@@ -58,14 +58,14 @@ void __attribute__((interrupt, auto_psv)) _U1TXInterrupt(void)
 void __attribute__((interrupt, auto_psv)) _U1RXInterrupt(void)
 {
     u16 i = i_RX_PC_Buff;
-    while (!U1STAbits.URXDA) {      // tant que la FIFO de réception n'est pas vide
+    IFS0bits.U1RXIF = 0;
+    while (U1STAbits.URXDA) {      // tant que la FIFO de réception n'est pas vide
         RX_PC_Buff[i] = U1RXREG;
         i++;
         if (i == UART_PC_SIZE_BUFF)
             i = 0;
     }
     i_RX_PC_Buff = i;
-    IFS0bits.U1RXIF = 0;
 }
 
 u8 Is_TX_Empty(void)

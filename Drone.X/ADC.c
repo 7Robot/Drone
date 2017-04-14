@@ -85,12 +85,14 @@ float Get_V_5V (void)
 float Get_V_Vbat (void)
 {   return V_Vbat;  }
     
-void Print_5V_Cmd(void)
+u8 Print_5V_Cmd(void)
 {
     printf("%.1f", Get_V_5V());
+    return 0;
 }
 
-void Print_VBAT_Cmd(void)
+u8 Print_VBAT_Cmd(void)
 {
     printf("%.1f", Get_V_Vbat());
+    return 0;
 }

@@ -6,7 +6,7 @@
 
 typedef struct {
     char* Name;
-    void (*Func)(void);
+    u8 (*Func)(void);
 } Command;
 
 
@@ -14,6 +14,6 @@ void Interp(char c);
 u8 Comp_Cmd (u16 Len, u16 ind);
 char To_UpperCase (char c);
 u8 Get_Param_Float (float *retour);
-void Print_All_CMD_Cmd (void);
+u8 Print_All_CMD_Cmd (void);
 
 #endif

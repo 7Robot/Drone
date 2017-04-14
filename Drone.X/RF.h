@@ -3,14 +3,14 @@
 #define __RF_H
 
 
-void RF_Reset_Cmd(void);
+u8 RF_Reset_Cmd(void);
 
 u8 RF_Get_Status(void);
 u8 RF_Read_Reg (u16 reg_addr);
 u8 RF_Send_Command(u8 cmd);
 void RF_Write_Reg(u16 reg_addr, u8 Data);
 
-void RF_Init_Cmd (void);
+u8 RF_Init_Cmd (void);
 
 
 void RF_Add_FIFO_TX(u8 Data);

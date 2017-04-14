@@ -96,7 +96,7 @@ u8 I2C_Read(u8 add, u8  reg, u8 nb_data, u8 *data)
     return 0;
 }
 
-void I2C_Try_All_Cmd(void)
+u8 I2C_Try_All_Cmd(void)
 {
     
     u16 add;
@@ -135,6 +135,7 @@ void I2C_Try_All_Cmd(void)
     }
     printf ("Fin\n");
     I2C1CONbits.I2CEN = 1;  // active l'interface
+    return 0;
 }
 
 
@@ -153,7 +154,7 @@ void Alti_Init (void)
     
 }*/
 
-void Alti_Read_Cmd(void)
+u8 Alti_Read_Cmd(void)
 {
     u8 i;
     u16 EEPROM[8];
@@ -243,6 +244,7 @@ void Alti_Read_Cmd(void)
         printf("\rTemp %ld.%ld", (TEMP/100), (TEMP%100));
         printf(" Press  %lld  ", PRESS64);
     }
+    return 0;
 }
 
 
@@ -325,7 +327,7 @@ void Accel_Loop (void)
     }
 }
 
-void Accel_Print_Cmd (void)
+u8 Accel_Print_Cmd (void)
 {
     printf ("Accel : \n");
     printf("\tax : %d", ax);
@@ -347,4 +349,6 @@ void Accel_Print_Cmd (void)
 
     printf("Temp : %d\n",temp);
     Wait_Transmited();
+    return 0;
 }
+

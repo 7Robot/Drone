@@ -6,7 +6,7 @@
 #define FREQ_I2C 90000  //  50kHz  (norme à 100)
 
 void I2C_Init (void);
-void I2C_Try_All_Cmd(void);
+u8 I2C_Try_All_Cmd(void);
 
 // csb = gnd
 #define ALTI_ADD 0x77       // x2 pour Write, x2+1 pour read
@@ -18,7 +18,7 @@ void I2C_Try_All_Cmd(void);
 u8 I2C_Write(u8 add, u8 reg, u8 nb_data, u8 *data);
 u8 I2C_Read(u8 add, u8  reg, u8 nb_data, u8 *data);
 
-void Alti_Read_Cmd(void);
+u8 Alti_Read_Cmd(void);
 
 // accel add0 = gnd
 #define ACCEL_ADD 0x68      // x2 pour Write, x2+1 pour read
@@ -37,11 +37,11 @@ void Alti_Read_Cmd(void);
 #define    ACC_FULL_SCALE_16_G       0x18
 
 
-void I2C_Try_Accel_Cmd (void);
+u8 I2C_Try_Accel_Cmd (void);
 
 
 void Accel_Init(void);
 void Accel_Loop (void);
-void Accel_Print_Cmd (void);
+u8 Accel_Print_Cmd (void);
 
 #endif

@@ -77,7 +77,9 @@ void Interp(char c)
                 if (!Found){
                     printf("Cmd Not Found\r\n");
                 } else {
-                    (*Command_List[Found-1].Func)();
+                    u8 val8 = (*Command_List[Found-1].Func)();
+                    if (val8)
+                        printf("Cmd Error : %d\r\n", val8);
                 }
             }
         }
@@ -142,11 +144,12 @@ u8 Get_Param_Float (float *retour)
     return 0;
 }
 
-void Print_All_CMD_Cmd (void)
+u8 Print_All_CMD_Cmd (void)
 {
     u16 i;
     for (i = 0; i < Command_List_Length; i++) {
         printf("%s\n", Command_List[i].Name);
         Wait_Transmited();
     }
+    return 0;
 }

@@ -34,6 +34,10 @@ const Command Command_List[] = {
  {  "RFSEND"    ,RF_Send_Packet_Cmd},
  {  "RFWAIT"    ,RF_Wait_For_Packet_Cmd},
  
+ {  "RFSLAVE"   ,RF_Set_Slave_Cmd},
+ {  "RFMASTER"  ,RF_Set_Master_Cmd},
+ 
+ 
  // {  "RFSTATUS"  ,RF_Print_Status_Cmd},
  // {  "RFSPI"     ,Test_Config_SPI_Cmd},
  

@@ -37,7 +37,7 @@ void __attribute__((interrupt,auto_psv)) _T1Interrupt(void)
 {
     static u16 i = 0;
     i++;
-    if (i == 500) {
+    if (i == 9) {
         LED2 = !LED2;
         i = 0;
     }

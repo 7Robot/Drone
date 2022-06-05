@@ -3,6 +3,29 @@
 
 #include "main.h"
 
+u8 RF_TX_Buff[RF_COMM_SIZE];
+u16 RF_TX_Buff_TODO = 0, RF_TX_Buff_DONE = 0;
+
+u8 RF_RX_Buff[RF_COMM_SIZE];
+u16 RF_RX_Buff_TODO = 0, RF_RX_Buff_DONE = 0;
+
+u8 RF_Comm_State = RF_COMM_REPOS;
+
+u8 RF_Mode = RF_IS_SLAVE;
+
+u8 RF_Set_Slave_Cmd (void)
+{
+    RF_Comm_State = RF_COMM_REPOS;
+    RF_Mode = RF_IS_SLAVE;
+    return 0;
+}
+
+u8 RF_Set_Master_Cmd (void)
+{
+    RF_Comm_State = RF_COMM_REPOS;
+    RF_Mode = RF_IS_MASTER;
+    return 0;
+}
 
 
 u8 RF_Read_All_Reg_Cmd(void)
@@ -117,8 +140,10 @@ u8 RF_Send_Packet_Cmd(void)
 u8 RF_Wait_For_Packet_Cmd(void)
 {
     u8 val8, c;
+    u8 Marc8;
     u8 i, buff;
     u8 last_receive = 1, receive = 0;
+    u16 val16 = 0;
 //    
 //    // PKT_Config  modifié
 //    RF_Write_Reg(CC1120_PKT_CFG0, (RF_Read_Reg(CC1120_PKT_CFG0) & 0x9F));
@@ -154,24 +179,44 @@ u8 RF_Wait_For_Packet_Cmd(void)
     val8 = RF_Get_Status();
     printf ("Stat2 0x%02X\n", val8);
     
-    
+    Marc8 = RF_Read_Reg(CC1120_MARCSTATE);
     // on reste dans ce mode tant que l'utilisateur n'a pas appuyé sur une touche
     while (!Get_Uart(&c)) {
         //receive = RF_Read_Reg(CC1120_SINGLE_RXFIFO);
+        /*
+        if (RF_Get_Status() != 0x10) {      // si on n'est plus en mode RX
+            receive = RF_Read_Reg(CC1120_NUM_RXBYTES);
+            printf("%d receive\r\n", receive);
+            receive = 10;
+            while (receive) {
+                buff = RF_Read_Reg(CC1120_SINGLE_RXFIFO);
+                printf("%5d 0x%02X\r\n", val16, buff);
+                receive--; // = RF_Read_Reg(CC1120_NUM_RXBYTES);
+            }
+            RF_Set_RX_Mode();
+            printf("Reset RX\r\n");
+        }*/
+        
         receive = RF_Read_Reg(CC1120_NUM_RXBYTES);
         if (receive) {
-            
-            buff = RF_Read_Reg(CC1120_SINGLE_RXFIFO);
-            printf("0x%02X\r\n", buff);
+            buff = RF_Read_Reg(CC1120_RXFIRST);
+            printf("%5d 0x%02X\r\n", val16, buff);
             
             val8 = RF_Get_Status();
-            if (!val8)
-                RF_Send_Command(CC1120_SRX);
+            if (!val8) {
+                RF_Set_RX_Mode();
+                printf("Reset RX\r\n");
+            }
+        }
+        val8 = RF_Read_Reg(CC1120_MARCSTATE);
+        if (val8 != Marc8) {
+            printf("%5d MARC : 0x%02X\r\n", val16, val8);
+            Marc8 = val8;
         }
         
         //if (receive != last_receive) {
             //printf("0x%02X ", receive);
-            last_receive = receive;
+            //last_receive = receive;
         //}
         /*
         val8 = RF_Read_Reg(CC1120_NUM_RXBYTES);
@@ -185,6 +230,7 @@ u8 RF_Wait_For_Packet_Cmd(void)
             printf ("\n");
         }*/
         Delay_ms(1);
+        val16 ++;
     }
     
     printf("Leaving Receive Mode\n");

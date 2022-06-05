@@ -7,3 +7,4 @@ possiblement mettre en place un systeme de commandes pour ce qui arrive du pc (a
 (là j'ai peut-être des trucs déjà prés au boulot / ou juste reprendre / adapter celui du robot CDF)
 
 bouffer la datasheet des cartes RFs, pour savoir comment les régler...
+=> mettre en place un bon protocole de comm

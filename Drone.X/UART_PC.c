@@ -3,7 +3,6 @@
 #include "main.h"
 //#include <libpic30.h>
 #include <uart.h>
-#include <p33FJ128MC804.h>
 
 volatile u8 TX_PC_Buff[UART_PC_SIZE_BUFF];
 volatile u16 i_TX_PC_Buff = 0;
@@ -50,7 +49,7 @@ void __attribute__((interrupt, auto_psv)) _U1TXInterrupt(void)
         if (i_TX_Transmit == UART_PC_SIZE_BUFF)
             i_TX_Transmit = 0;
     }
-
+    
     if (i_TX_Transmit == i_TX_PC_Buff) // si on a tout transmit, on s'arrete
         IEC0bits.U1TXIE = 0;
 }

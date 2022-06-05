@@ -244,7 +244,7 @@ void Init_I2C(void){
     //IEC1bits.SI2C1IE = 1; //I2C Slave Events interupt enable
     //IPC4bits.SI2C1IP = 0b001; //priority 1
     
-    I2C1ADD = 0b0000000110; //adresse du slave
+    I2C1ADD = 0x20; //adresse du slave
     I2C1CONbits.A10M = 0; //adresse sur 7-bits
   
 }
@@ -263,11 +263,11 @@ void Gestion_I2C_Slave_Loop(void){
         case 1:
             if(I2C1STATbits.S){ //detection d'un bit de start/restart
                i2c_state++; 
-               IFS1bits.SI2C1IF = 0;
+               //IFS1bits.SI2C1IF = 0;
             }
             break;            
         case 2://etat de verification de l'adresse
-            if(IFS1bits.SI2C1IF){ //si le buffer de reception est plein
+            if(I2CSTATbits.RBF){ //si le buffer de reception est plein
                 if(!I2CSTATbits.D_A){ //si l'adresse est bonne
                     i2c_state++;
                     poubelle = I2C1RCV;//on vide la reception   
@@ -276,6 +276,8 @@ void Gestion_I2C_Slave_Loop(void){
                     printf("msg: %d", poubelle);
                     i2c_state = 20;
                 }         
+            } else if (I2C1STATbits.P) {
+                i2c_state --;
             }
             break;
             

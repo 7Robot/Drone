@@ -13,10 +13,10 @@ const Command Command_List[] = {
  {  "5V"        ,Print_5V_Cmd},
  {  "VBAT"      ,Print_VBAT_Cmd},
  
- {  "ALLI2C"    ,I2C_Try_All_Cmd},
- {  "ALTI"      ,Alti_Read_Cmd},
+// {  "ALLI2C"    ,I2C_Try_All_Cmd},
+// {  "ALTI"      ,Alti_Read_Cmd},
  //{  "TACCEL"    ,I2C_Try_Accel_Cmd},
- {  "ACCEL"     ,Accel_Print_Cmd},
+// {  "ACCEL"     ,Accel_Print_Cmd},
  
  
  

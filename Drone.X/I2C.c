@@ -1,354 +1,322 @@
-
-
-
 #include "main.h"
 
-// ACCEL
-int16_t ax, ay, az;
-int16_t gx, gy, gz;
-int16_t temp;
-int16_t mx, my, mz;
 
-void I2C_Init (void)
-{
-    u16 BRG = 1 + FOSC / (FREQ_I2C * 2);        // calculs simplifiés par rapport à la datasheet, à revoir peut-être
+#if I2C_MASTER
+
+volatile uint8_t state_i2c = 0;
+
+uint32_t I2C_timer; //stockage du temps
+uint8_t I2C_Maxtimed = 0;
+
+uint8_t I2C_i = 0;
+
+I2C_command Liste_I2C_Command[I2C_CMD_LIST_SIZE];
+I2C_command Current_I2C_Cmd;
+
+uint8_t cmd_I2C_DONE = 0;
+uint8_t cmd_I2C_TODO = 0;
+
+void Init_I2C(void){
+    //setting baud rate:
+    uint16_t Fscl = 20000;
+    uint16_t BRG = (((1/Fscl))*FCY/2)-2;
+    I2C1BRG = BRG;
     
-    if (BRG > 0x1FF)
-        BRG = 0x1FF;    // registre 9 bits !
+    I2C1CONbits.IPMIEN = 0;
     
-    I2C1BRG = BRG;      // regle le baudrate
-    I2C1CONbits.I2CEN = 1;  // active l'interface
+    IEC1bits.MI2C1IE = 1; //I2C Master Events interupt enable
+    IPC4bits.MI2C1IP = 0b001; //priority 1
+    
+    //I2C1CONbits.I2CEN = 1; //enable I2C
 }
 
-u8 I2C_Write(u8 add, u8 reg, u8 nb_data, u8 *data)
-{
- //   u8 error = 0;
-    Set_Maxtime(10);
-    I2C1CONbits.SEN = 1;    // envoi start condition
-    while (I2C1CONbits.SEN && Get_Maxtime());    // attente de l'envoi
-    I2C1TRN = add<<1;
-    Set_Maxtime(30);
-    while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
-    while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
-    I2C1TRN = reg;
-    Set_Maxtime(30);
-    while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
-    while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
-    while (nb_data) {
-        I2C1TRN = *data;
-        Set_Maxtime(30);
-        while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
-        while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
-        data ++;
-        nb_data --;
-    }
-    
-    Set_Maxtime(10);
-    I2C1CONbits.PEN = 1;    // envoi stop condition
-    while (I2C1CONbits.PEN && Get_Maxtime());    // attente de l'envoi
-    
-    return 0;
+void __attribute__((interrupt,auto_psv)) _MI2C1Interrupt (void){
+    IFS1bits.MI2C1IF = 0;
+    state_i2c ++;
 }
 
-u8 I2C_Read(u8 add, u8  reg, u8 nb_data, u8 *data)
-{
-    Set_Maxtime(10);
-    I2C1CONbits.SEN = 1;    // envoi start condition
-    while (I2C1CONbits.SEN && Get_Maxtime());    // attente de l'envoi
-    I2C1TRN = add<<1;
-    Set_Maxtime(30);
-    while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
-    while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
-    I2C1TRN = reg;
-    Set_Maxtime(30);
-    while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
-    while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
-    
-    Set_Maxtime(10);
-    I2C1CONbits.SEN = 1;    // envoi start condition
-    while (I2C1CONbits.SEN && Get_Maxtime());    // attente de l'envoi
-    I2C1TRN = (add<<1)+1;
-    Set_Maxtime(30);
-    while (!(I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
-    while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
-    
-    while (nb_data) {
-        nb_data --;
-        
-        I2C1CONbits.RCEN = 1;   // passage en receive
-        Set_Maxtime(30);
-        while (I2C1CONbits.RCEN && Get_Maxtime());
-
-        *data = I2C1RCV;
-        if (nb_data) {
-            data ++;
-            I2C1CONbits.ACKDT = 0;      // on veut acknoledge
-        } else {
-            I2C1CONbits.ACKDT = 1;      // on veut pas acknoledge
-        }
-        I2C1CONbits.ACKEN = 1;      // laisse partir le bit acknoledge
-        while (I2C1CONbits.ACKEN && Get_Maxtime());
-    }
-    Set_Maxtime(10);
-    I2C1CONbits.PEN = 1;    // envoi stop condition
-    while (I2C1CONbits.PEN && Get_Maxtime());    // attente de l'envoi
-
-    return 0;
+void Add_I2C_command(uint8_t i2c_addr, uint8_t nbr_byte_send, uint8_t nbr_byte_read, uint8_t data_send[], uint8_t data_read[], void *Done){
+    Liste_I2C_Command[cmd_I2C_TODO].nbr_byte_send = nbr_byte_send;
+    Liste_I2C_Command[cmd_I2C_TODO].nbr_byte_read = nbr_byte_read;
+    Liste_I2C_Command[cmd_I2C_TODO].data_read = data_read;
+    Liste_I2C_Command[cmd_I2C_TODO].data_send = data_send;
+    Liste_I2C_Command[cmd_I2C_TODO].i2c_addr = i2c_addr;
+    Liste_I2C_Command[cmd_I2C_TODO].Done = Done;
+    cmd_I2C_TODO++;
+    if(cmd_I2C_TODO == I2C_CMD_LIST_SIZE)
+        cmd_I2C_TODO = 0;
 }
 
-u8 I2C_Try_All_Cmd(void)
-{
-    
-    u16 add;
-    for (add = 0x0; add < 0xFF; add += 2)
-    {
-        I2C1CONbits.I2CEN = 1;  // active l'interface
-        Delay_ms(10);
-        printf ("\r 0x%02X", add);
-        Set_Maxtime(30);
-        I2C1CONbits.SEN = 1;    // envoi start condition
-        while (I2C1CONbits.SEN && Get_Maxtime());    // attente de l'envoi
-        if (Get_Maxtime()) {
-            I2C1TRN = add;     // write de l'adresse
-            while ((!I2C1STATbits.TRSTAT) && Get_Maxtime());  // attente début transmission
-            while (I2C1STATbits.TRSTAT && Get_Maxtime());     // attente fin transmission
-            if (Get_Maxtime()) {
-                if (!I2C1STATbits.ACKSTAT && Get_Maxtime())  // si on a recu un ack :
-                {
-                    printf (" : found!\n");
-                }
-            } else {
-                printf ("Erreur Transmission\n");
-            }
-            Set_Maxtime(10);
-            I2C1CONbits.PEN = 1;    // envoi stop condition
-            while (I2C1CONbits.PEN && Get_Maxtime());    // attente de l'envoi
-            if (!Get_Maxtime()) {
-                printf ("Erreur Stop\n");
-            }
-        } else {
-            printf ("Erreur Start\n");
-        }
-        Delay_ms(10);
-        I2C1CONbits.I2CEN = 0;  // Désactive l'interface
-        Delay_ms(10);
-    }
-    printf ("\rFin\n");
-    I2C1CONbits.I2CEN = 1;  // active l'interface
-    return 0;
-}
-
-
-    /*
-void Alti_Init (void)
-{    
-    u16 EEPROM[8];
-    u8 i;
-    u8 tab8[2];
-    u32 val32;
-    for (i = 0; i < 8; i++) {
-        I2C_Read(ALTI_ADD, 0xA0+2*i, 2, &tab8[0]);
-        val32 = (((u16)(tab8[0])) << 8) + tab8[1];
-        EEPROM[i] = val32;
-    }
-    
-}*/
-
-u8 Alti_Read_Cmd(void)
-{
-    u8 i;
-    u16 EEPROM[8];
-    char c;
-    u8 tab8[4];
-    u32 D1, D2, TEMP, Dt, val32;
-    uint64_t val64, OFF, SENS, val64b, PRESS64;
-    
-    printf("EEPROM\n");
-    for (i = 0; i < 8; i++) {
-        I2C_Read(ALTI_ADD, 0xA0+2*i, 2, &tab8[0]);
-        val32 = (((u16)(tab8[0])) << 8) + tab8[1];
-        EEPROM[i] = val32;
-        printf("0x%04lX\n", val32 );
-        Delay_ms(50);
-    }    
-    printf("EEPROM\n");
-    for (i = 0; i < 8; i++) {
-        I2C_Read(ALTI_ADD, 0xA0+2*i, 2, &val32);
-        printf("0x%04lX\n", val32 );
-        Delay_ms(50);
-    }
-    
-    
-    printf("Convert_pressions et temp\n");
-    while (!(Get_Uart(&c)))
-    {
-        D1 = 0;
-        D2 = 0;
-        //for (i = 0; i < 20; i++) {
-        for (i = 0; i < 25; i++) {
-            I2C_Write(ALTI_ADD, 0x48 ,0 ,0);
-            //I2C_Alti_Send_Command(0x48);
-            Delay_ms(11);
-            I2C_Read(ALTI_ADD, 0, 3, &tab8[0]);
-            D1 += (((u32)(tab8[0])) << 16) + (((u16)(tab8[1])) << 8) + tab8[2];
-            
-            I2C_Write(ALTI_ADD, 0x58 ,0 ,0);
-            //I2C_Alti_Send_Command(0x58);
-            Delay_ms(11);
-            I2C_Read(ALTI_ADD, 0, 3, &tab8[0]);
-            D2 += (((u32)(tab8[0])) << 16) + (((u16)(tab8[1])) << 8) + tab8[2];
-        }
-        
-        while(!Is_TX_Empty());
-        
-        D1 = D1 / 25;
-        D2 = D2 / 25;
-        
-        val32 = EEPROM[5];
-        val32 = val32 << 8;
-        Dt = D2 - val32;
-        
-        val64 = Dt;
-        val64 = val64 * EEPROM[6];
-        val64 = val64 >> 23;
-        TEMP = ((u32)(val64)) + 2000; 
-        
-        
-        
-        //val64 = ((Dt * EEPROM[6]) / 0x800000) + 2000;
-
-        val64 = Dt;
-        val64 = val64 * EEPROM[4];
-        val64 = val64 >> 6;
-        val64b = EEPROM[2];
-        val64b = val64b << 17;
-        OFF = val64 + val64b;
-        
-        val64 = Dt;
-        val64 = val64 * EEPROM[3];
-        val64 = val64 >> 7;
-        val64b = EEPROM[1];
-        val64b = val64b << 16;
-        SENS = val64 + val64b;
-        
-        val64 = D1;
-        val64 = D1 * SENS;
-        val64 = val64 >> 21;
-        val64 = val64 - OFF;
-        PRESS64 = val64 >> 15;
-        
-        
-        //printf("0x%06lX  0x%06lX\r", val32, val32b);
-        //printf("D2 0x%08lX Dt 0x%08lX  Temp %ld\n", D2, Dt, TEMP);
-        //printf("D1 0x%06lX OFF 0x%016llX  SENS 0x%016llX  Press  %lld\n", D1, OFF, SENS, PRESS64);
-        printf("\rTemp %ld.%ld", (TEMP/100), (TEMP%100));
-        printf(" Press  %lld  ", PRESS64);
-    }
-    return 0;
-}
-
-
-
-void Accel_Init(void)
-{
-    u8 val8;
-    // Configure gyroscope range
-    val8 = GYRO_FULL_SCALE_2000_DPS;
-    I2C_Write(MPU9250_ADDRESS, 27, 1, &val8);
-    // Configure accelerometers range
-    val8 = ACC_FULL_SCALE_16_G;
-    I2C_Write(MPU9250_ADDRESS, 28, 1, &val8);
-    // Set by pass mode for the magnetometers
-    val8 = 0x02;
-    I2C_Write(MPU9250_ADDRESS, 0x37, 1, &val8);
-}
-
-void Accel_Loop (void)
-{
-    static u32 Last_Timer = 0;
-    static u8 Etat_Accel = 0;
-    static u8 Max_Time;
-    u8 val8;
-    u8 Buffer[20];
-    
-    switch (Etat_Accel) {
+void Transmit_I2C_Loop(void){
+    switch (state_i2c){
         case 0:
-            I2C_Read(MPU9250_ADDRESS, 0x3B, 14, &Buffer[0]);
-            Etat_Accel = 1;
+            if(cmd_I2C_TODO != cmd_I2C_DONE){
+                IFS1bits.MI2C1IF = 0;
+                I2C1CONbits.I2CEN = 1;
+                Current_I2C_Cmd = Liste_I2C_Command[cmd_I2C_DONE];
+                state_i2c++;
+            }
             break;
-        case 1:
-            ax = -(Buffer[0]<<8 | Buffer[1]);
-            ay = -(Buffer[2]<<8 | Buffer[3]);
-            az =   Buffer[4]<<8 | Buffer[5];
-            // temp
-            temp = Buffer[6]<<8 | Buffer[7];
-            // Gyroscope
-            gx = -(Buffer[8]<<8 | Buffer[9]);
-            gy = -(Buffer[10]<<8 | Buffer[11]);
-            gz =   Buffer[12]<<8 | Buffer[13];
-            Etat_Accel = 2;
+            
+        case 1: //start event
+            I2C1CONbits.SEN = 1; // Initiates the Start condition on the SDAx and SCLx pins
+            I2C_i=0;
+            I2C_timer = Timer_ms1;
+            state_i2c++;
             break;
-        case 2:
-            val8 = 0x01;
-            I2C_Write(MAG_ADDRESS, 0x0A, 1, &val8);
-            Max_Time = 0;
-            Last_Timer = Compteur_ms_1;
-            Etat_Accel = 3;
+        case 2://if (!I2C1CONbits.SEN)
+            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+                I2C_Maxtimed = 1;
+                state_i2c = 30; 
+            }
             break;
-        case 3:
-            if ((Last_Timer - Compteur_ms_1) > 5) {
-                val8 = 0;
-                I2C_Read(MAG_ADDRESS, 0x02, 1, &val8);
-                if (val8 & 0x01)
-                    Etat_Accel = 4;
-                else {
-                    Last_Timer = Compteur_ms_1;
-                    Max_Time ++;
-                    if (Max_Time > 10)
-                        Etat_Accel = 5;
-                }
+        case 3: //send device addr
+            if (Current_I2C_Cmd.nbr_byte_send != 0){
+                I2C1TRN = (Current_I2C_Cmd.i2c_addr << 1) + 0; // 7bits addr + R/W bit
+                I2C_timer = Timer_ms1;
+                state_i2c++;
+            }else{
+                state_i2c = 11;
             }
             break;
         case 4:
-            I2C_Read(MAG_ADDRESS,0x03,6,&Buffer[0]);
-            // Magnetometer
-            mx = -(Buffer[3]<<8 | Buffer[2]);
-            my = -(Buffer[1]<<8 | Buffer[0]);
-            mz = -(Buffer[5]<<8 | Buffer[4]);
-            Etat_Accel = 5;
-            Last_Timer = Compteur_ms_1;
+            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+                I2C_Maxtimed = 1;
+                state_i2c = 30; 
+            }
             break;
-        case 5:
-            if ((Last_Timer - Compteur_ms_1) > 20)
-                 Etat_Accel = 0;
+        case 5: //acknoledge status bit 
+            if (I2C1STATbits.ACKSTAT == 0) {
+                state_i2c++;
+            }else{
+                state_i2c = 30;
+            }
+            break;     
+        /////////////////////////////SEND///////////////////////////////////////    
+        case 6:
+            I2C1TRN = Current_I2C_Cmd.data_send[I2C_i];
+            I2C_timer = Timer_ms1;
+            I2C_i++;
+            state_i2c++;
+            break;
+        case 7:
+            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+                I2C_Maxtimed = 1;
+                state_i2c = 30; 
+            }
+            break;
+        case 8:
+            if (I2C1STATbits.ACKSTAT == 0) {
+                if(I2C_i == Current_I2C_Cmd.nbr_byte_send){
+                    state_i2c++;
+                }else{
+                    state_i2c = 6;
+                }
+            } else{
+                state_i2c = 30;
+            }
+            break;  
+        case 9:
+            if (Current_I2C_Cmd.nbr_byte_read != 0){
+                I2C_i=0;
+                I2C1CONbits.RSEN = 1; // ReStart
+                I2C_timer = Timer_ms1;
+                state_i2c++;
+            }else{
+                state_i2c = 19;
+            }
+            break;
+        case 10://if (!I2C1CONbits.RSEN)
+            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+                I2C_Maxtimed = 1;
+                state_i2c = 30; 
+            }
+            break;   
+        case 11:
+            I2C1TRN = (Current_I2C_Cmd.i2c_addr << 1) + 1; // 7bits addr + R/W bit
+            I2C_timer = Timer_ms1;
+            state_i2c++;
+            break;
+        case 12: 
+            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+                I2C_Maxtimed = 1;
+                state_i2c = 30; 
+            }
+            break;
+        case 13:
+            if (I2C1STATbits.ACKSTAT == 0) {
+                state_i2c++;
+            }else{
+                state_i2c = 30;
+            }
+            break;     
+        //////////////////////////READ//////////////////////////////////////////    
+        case 14:
+            I2C1CONbits.RCEN = 1; //allow the master to receive data 
+            I2C_timer = Timer_ms1;
+            state_i2c++;
+            break;
+        case 15://if (I2C1STAT.RBF == 1)
+            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+                I2C_Maxtimed = 1;
+                state_i2c = 30; 
+            }
+            break;
+        case 16:
+            Current_I2C_Cmd.data_read[I2C_i] = I2C1RCV;
+            I2C_i++;
+            if(I2C_i == Current_I2C_Cmd.nbr_byte_read){
+                I2C1CONbits.ACKDT = 1; //nack
+                I2C1CONbits.ACKEN = 1;
+            }else{
+                I2C1CONbits.ACKDT = 0; //ack
+                I2C1CONbits.ACKEN = 1; 
+            }
+            I2C_timer = Timer_ms1; 
+            state_i2c++;
+            break;
+        case 17: //if (I2C1CONbits.ACKEN == 0) {
+            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+                I2C_Maxtimed = 1;
+                state_i2c = 30; 
+            }
+            break;
+        case 18:
+            if(I2C_i == Current_I2C_Cmd.nbr_byte_read){
+                state_i2c++;
+            }else{
+                state_i2c = 14;
+            }
+            break;
+        case 19:
+            I2C1CONbits.PEN = 1;
+            I2C_timer = Timer_ms1;
+            state_i2c++;
+            break;
+        case 20:
+            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+                I2C_Maxtimed = 1;
+                state_i2c = 30; 
+            }
+            break;
+        case 21: // if (I2C1CONbits.PEN == 0)
+            state_i2c = 30;
+            break;
+        case 30:
+            // previent qu'on a fini :
+            *((uint8_t*)Current_I2C_Cmd.Done) = 1;
+            cmd_I2C_DONE++;
+            if (cmd_I2C_DONE >= I2C_CMD_LIST_SIZE){
+                cmd_I2C_DONE = 0;  
+            }
+            I2C1CONbits.I2CEN = 0;
+            if (I2C_Maxtimed) {
+                I2C_Maxtimed = 0;
+                state_i2c = 31;
+            } else {
+                state_i2c = 0;
+            }
+            break;
+        case 31:
+            I2C_timer = Timer_ms1;
+            I2C_SCL_PIN = 0;
+            I2C_SCL_TRIS = 0;   // fabrique un coup d'horloge sur l'I2C
+            state_i2c ++;
+            break;
+        case 32:
+            if ((Timer_ms1 - I2C_timer) > 1) {
+                I2C_SCL_PIN = 1;
+                I2C_SCL_TRIS = 1;   // relache l'I2C
+                state_i2c = 0;
+            }
             break;
         default:
-            Etat_Accel = 0;
+            break;
     }
 }
 
-u8 Accel_Print_Cmd (void)
-{
-    printf ("Accel : \n");
-    printf("\tax : %d", ax);
-    printf("\tay : %d", ay);
-    printf("\taz : %d\n", az);
-    Wait_Transmited();
+#else
+uint8_t Data_To_Send = 48; //truc au pif pour le premier test
 
-    printf ("Gyro : \n");
-    printf("\tgx : %d", gx);
-    printf("\tgy : %d", gy);
-    printf("\tgz : %d\n", gz);
-    Wait_Transmited();
-
-    printf ("Magneto : \n");
-    printf("\tmx : %d", mx);
-    printf("\tmy : %d", my);
-    printf("\tmz : %d\n", mz);
-    Wait_Transmited();
-
-    printf("Temp : %d\n",temp);
-    Wait_Transmited();
-    return 0;
+void Init_I2C(void){
+    I2C1CONbits.IPMIEN = 0;
+    
+    //IEC1bits.SI2C1IE = 1; //I2C Slave Events interupt enable
+    //IPC4bits.SI2C1IP = 0b001; //priority 1
+    
+    I2C1ADD = 0b0000000011; //adresse du slave
+    I2C1CONbits.A10M = 0; //adresse sur 7-bits
+  
 }
 
+uint8_t i2c_state = 0;
+
+void Gestion_I2C_Slave_Loop(void){
+    uint8_t poubelle;//sert a vider les buffers
+    switch(i2c_state){
+        case 0:
+            I2C1CONbits.I2CEN = 1;
+            poubelle = I2C1RCV; //on vide le buffer de reception au cas ou
+            i2c_state++;
+            break;
+        case 1:
+            if(I2C1STATbits.S){ //detection d'un bit de start/restart
+               i2c_state++; 
+            }
+            break;            
+        case 2://etat de verification de l'adresse
+            if(I2CSTATbits.RBF){ //si le buffer de reception est plein
+                if(!I2CSTATbits.D_A){ //si l'adresse est bonne
+                    i2c_state++;
+                    poubelle = I2C1RCV;//on vide la reception   
+                }else{ //on est en lecture de data
+                    poubelle = I2C1RCV;
+                    printf("msg: %d", poubelle);
+                    i2c_state = 20;
+                }         
+            }
+            break;
+            
+        case 3: 
+            I2C1CONbits.ACKDT=0; 
+            if(I2CSTATbits.R_W){ //on passe en mode ecriture
+                i2c_state = 10;
+            }else{ //sinon on passe en mode lecture
+                i2c_state = 20;
+            }
+            break;          
+            
+            
+    ///////////////////////// Ecriture ///////////////////////////////////////       
+        case 10:
+            I2C1CONbits.SCLREL = 1; //relache la ligne scl
+            i2c_state++;
+            break;
+        case 11:
+            I2C1TRN = Data_To_Send;
+            i2c_state++;
+            break;
+        case 12: //si le buffer de transmission est vide
+            if(!I2C1STATbits.TBF){
+                
+            ////// LA JE NE SAIS PAS SI CE REGISTRE EST MODIFIE OU SI JE DOIS JUSTE LIRE L42TAT DE LA LIGNE POUR VOIR SI IL Y A UN ACK OU UN NACK
+                
+                if(I2C1STATbits.ACKSTAT){ //ack reçu du master donc on continue d'envoyer
+                    i2c_state = 10;
+                }else{
+                    i2c_state = 1; //nack reçut transmission finit on attend
+                }
+            }
+            break;            
+    ///////////////////////// Lecture ///////////////////////////////////////       
+        case 20:
+            if(I2C1STATbits.P && !I2C1STATbits.S){ //bit de stop
+                i2c_state = 1;
+            }else{
+                i2c_state = 2;
+            }
+            break;
+            
+    }
+}
+#endif

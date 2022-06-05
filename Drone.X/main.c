@@ -28,7 +28,7 @@ int main(void) {
     UART_PC_Init();
     Timer_Ms_Init();
     ADC_Init();
-    I2C_Init();
+    Init_I2C();
     //Accel_Init();
     SPI_Init();
     
@@ -53,6 +53,12 @@ int main(void) {
             GPS_Send_Off_Cmd();
         }
         Accel_Loop();*/
+        
+        #if I2C_MASTER
+        Transmit_I2C_Loop();
+        #else
+        Gestion_I2C_Slave_Loop();
+        #endif
         
     }
     

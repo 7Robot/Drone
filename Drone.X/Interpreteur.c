@@ -19,6 +19,9 @@ const Command Command_List[] = {
 // {  "ACCEL"     ,Accel_Print_Cmd},
  
  
+ {  "IWR"      ,I2C_Wr_Cmd},
+ {  "IRD"      ,I2C_Rd_Cmd},
+    
  
  {  "GPSON"     ,GPS_Send_On_Pin_Cmd},
  {  "GPSOFF"    ,GPS_Send_OFF_Pin_Cmd},

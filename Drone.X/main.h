@@ -18,9 +18,6 @@ typedef uint8_t u8;
 #define FCY (FOSC/2)
 
 
-//#define I2C_MASTER
-
-
 
 
 #include "ADC.h"

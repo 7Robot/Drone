@@ -29,6 +29,7 @@
 nbproject/
 build/
 dist/
+.generated_files/
 
 # Sublime text
 *.sublime-project

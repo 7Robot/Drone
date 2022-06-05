@@ -142,7 +142,8 @@ u8 RF_Wait_For_Packet_Cmd(void)
     u8 val8, c;
     u8 Marc8;
     u8 i, buff;
-    u8 last_receive = 1, receive = 0;
+    //u8 last_receive = 1;
+    u8 receive = 0;
     u16 val16 = 0;
 //    
 //    // PKT_Config  modifié

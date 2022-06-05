@@ -1,8 +1,6 @@
 
 
 #include "main.h"
-//#include <libpic30.h>
-#include <uart.h>
 
 volatile u8 TX_PC_Buff[UART_PC_SIZE_BUFF];
 volatile u16 i_TX_PC_Buff = 0;
@@ -12,29 +10,46 @@ volatile u16 i_RX_PC_Buff = 0;
 
 void UART_PC_Init(void)
 {
+    u8 poubelle;
     
-    OpenUART1(UART_EN & UART_IDLE_CON & UART_IrDA_DISABLE & UART_MODE_FLOW
-        & UART_UEN_00 & UART_DIS_WAKE & UART_DIS_LOOPBACK
-        & UART_DIS_ABAUD & UART_UXRX_IDLE_ONE & UART_BRGH_SIXTEEN
-        & UART_NO_PAR_8BIT & UART_1STOPBIT,
-          UART_INT_TX_BUF_EMPTY & UART_IrDA_POL_INV_ZERO
-        & UART_SYNC_BREAK_DISABLED & UART_TX_ENABLE & UART_TX_BUF_NOT_FUL & UART_INT_RX_CHAR
-        & UART_ADR_DETECT_DIS & UART_RX_OVERRUN_CLEAR,
-          BRGBAUDRATEPC);
+    IFS0bits.U1RXIF = 0;
+    IFS0bits.U1TXIF = 0;
+    
+    i_TX_PC_Buff = 0;
+    i_RX_PC_Buff = 0;
+    
+    U1STAbits.UTXISEL1 = 1;
+    U1STAbits.UTXISEL0 = 0;     // une interruption quand le buffer est vide
+    U1STAbits.URXISEL = 0;      // IT en RX des la 1ere reception
+    
+    U1MODEbits.UARTEN = 1;      // va par defaut du registre OK (mode 8bit)
+    U1STAbits.UTXEN = 1;        // enable TX  (apres UARTEN, sinon marche pas)
+    U1BRG = BRGBAUDRATEPC;
 
-    
-    // vu qu'on peut gerer 4 transmits à la fois, c'est plus une IT super urgente..
-    ConfigIntUART1(UART_RX_INT_PR4 & UART_RX_INT_EN
-                 & UART_TX_INT_PR4 & UART_TX_INT_DIS);
-    
-    IFS0bits.U1TXIF = 1;    // init le flag 
-    
     //Remapage uart 1
     _U1RXR = 24;
     _RP23R = 0b0011;  // RP23 = U1TX (p.167)
+    
+    // purge buffer récepetion
+    IFS0bits.U1RXIF = 0;
+    poubelle = U1RXREG;
+    poubelle = U1RXREG;
+    poubelle = U1RXREG;
+    poubelle = U1RXREG;
+
+    // vu qu'on peut gerer 4 transmits à la fois, c'est plus une IT super urgente..
+
+    IPC2bits.U1RXIP = 4;
+    IPC3bits.U1TXIP = 4;
+    IEC0bits.U1RXIE = 1;
+    IEC0bits.U1TXIE = 0;
+    
+    IFS0bits.U1TXIF = 1; // init le flag 
+
 }
 
-
+    
+    
 void __attribute__((interrupt, auto_psv)) _U1TXInterrupt(void)
 {
     static u16 i_TX_Transmit = 0;

@@ -1,8 +1,6 @@
 
 
 #include "main.h"
-//#include <libpic30.h>
-#include <uart.h>
 
 volatile u8 TX_GPS_Buff[UART_GPS_SIZE_BUFF];
 volatile u16 i_TX_GPS_Buff = 0, i_TX_GPS_Transmit = 0;
@@ -12,46 +10,47 @@ volatile u16 i_RX_GPS_Buff = 0;
 
 void UART_GPS_Init(void)
 {
-    char loc_str[30];
-    OpenUART2(UART_EN & UART_IDLE_CON & UART_IrDA_DISABLE & UART_MODE_FLOW
-        & UART_UEN_00 & UART_DIS_WAKE & UART_DIS_LOOPBACK
-        & UART_DIS_ABAUD & UART_UXRX_IDLE_ONE & UART_BRGH_SIXTEEN
-        & UART_NO_PAR_8BIT & UART_1STOPBIT,
-          UART_INT_TX_BUF_EMPTY & UART_IrDA_POL_INV_ZERO
-        & UART_SYNC_BREAK_DISABLED & UART_TX_ENABLE & UART_TX_BUF_NOT_FUL & UART_INT_RX_CHAR
-        & UART_ADR_DETECT_DIS & UART_RX_OVERRUN_CLEAR,
-          BRGBAUDRATE_BASE_GPS);
-
-    /*
-    ConfigIntUART2(UART_RX_INT_PR6 & UART_RX_INT_EN
-                 & UART_TX_INT_PR6 & UART_TX_INT_DIS);
-    */
-    // on peut gerer plusieurs octets en 1 IT, ce n'est donc pas super urgent...
-    IPC7bits.U2RXIP = 3;
-    IPC7bits.U2TXIP = 3;
-    IEC1bits.U2RXIE = 1;
-    
-    IFS1bits.U2TXIF = 1;    // init le flag 
-    
-    // RX du GPS = RC4  = RP20      => a brancher sur TX2
-    // TX du GPS = RC3  = RP19      => a brancher sur RX2
-        //Remapage uart 2
-    
-    
-    TRISCbits.TRISC3 = 1;
-    _U2RXR = 19;
-    
-    
-    _RP20R = 0b0101;  // RP20 = U2TX (p.167)
-    
-    
-    Delay_ms(10);
-    sprintf(&loc_str[0],"PSRF100,1,%d,8,1,0", BAUDRATEGPS );
-    GPS_Transmit_NMEA_Command(&loc_str[0]);
-    while (!Is_GPS_TX_Empty());
-    Delay_ms(10);
-    U2BRG = BAUDRATEGPS;
-           
+//    
+//    char loc_str[30];
+//    OpenUART2(UART_EN & UART_IDLE_CON & UART_IrDA_DISABLE & UART_MODE_FLOW
+//        & UART_UEN_00 & UART_DIS_WAKE & UART_DIS_LOOPBACK
+//        & UART_DIS_ABAUD & UART_UXRX_IDLE_ONE & UART_BRGH_SIXTEEN
+//        & UART_NO_PAR_8BIT & UART_1STOPBIT,
+//          UART_INT_TX_BUF_EMPTY & UART_IrDA_POL_INV_ZERO
+//        & UART_SYNC_BREAK_DISABLED & UART_TX_ENABLE & UART_TX_BUF_NOT_FUL & UART_INT_RX_CHAR
+//        & UART_ADR_DETECT_DIS & UART_RX_OVERRUN_CLEAR,
+//          BRGBAUDRATE_BASE_GPS);
+//
+//    /*
+//    ConfigIntUART2(UART_RX_INT_PR6 & UART_RX_INT_EN
+//                 & UART_TX_INT_PR6 & UART_TX_INT_DIS);
+//    */
+//    // on peut gerer plusieurs octets en 1 IT, ce n'est donc pas super urgent...
+//    IPC7bits.U2RXIP = 3;
+//    IPC7bits.U2TXIP = 3;
+//    IEC1bits.U2RXIE = 1;
+//    
+//    IFS1bits.U2TXIF = 1;    // init le flag 
+//    
+//    // RX du GPS = RC4  = RP20      => a brancher sur TX2
+//    // TX du GPS = RC3  = RP19      => a brancher sur RX2
+//        //Remapage uart 2
+//    
+//    
+//    TRISCbits.TRISC3 = 1;
+//    _U2RXR = 19;
+//    
+//    
+//    _RP20R = 0b0101;  // RP20 = U2TX (p.167)
+//    
+//    
+//    Delay_ms(10);
+//    sprintf(&loc_str[0],"PSRF100,1,%d,8,1,0", BAUDRATEGPS );
+//    GPS_Transmit_NMEA_Command(&loc_str[0]);
+//    while (!Is_GPS_TX_Empty());
+//    Delay_ms(10);
+//    U2BRG = BAUDRATEGPS;
+//           
 }
 
 

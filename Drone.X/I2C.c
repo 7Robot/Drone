@@ -22,7 +22,7 @@ void I2C_Init (void)
 
 u8 I2C_Write(u8 add, u8 reg, u8 nb_data, u8 *data)
 {
-    u8 error = 0;
+ //   u8 error = 0;
     Set_Maxtime(10);
     I2C1CONbits.SEN = 1;    // envoi start condition
     while (I2C1CONbits.SEN && Get_Maxtime());    // attente de l'envoi
@@ -104,7 +104,7 @@ u8 I2C_Try_All_Cmd(void)
     {
         I2C1CONbits.I2CEN = 1;  // active l'interface
         Delay_ms(10);
-        printf ("\r0x%02X", add);
+        printf ("\r 0x%02X", add);
         Set_Maxtime(30);
         I2C1CONbits.SEN = 1;    // envoi start condition
         while (I2C1CONbits.SEN && Get_Maxtime());    // attente de l'envoi
@@ -133,7 +133,7 @@ u8 I2C_Try_All_Cmd(void)
         I2C1CONbits.I2CEN = 0;  // Désactive l'interface
         Delay_ms(10);
     }
-    printf ("Fin\n");
+    printf ("\rFin\n");
     I2C1CONbits.I2CEN = 1;  // active l'interface
     return 0;
 }

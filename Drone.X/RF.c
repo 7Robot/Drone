@@ -231,7 +231,7 @@ u8 RF_Send_Command(u8 cmd)
 u8 RF_Init_Cmd (void)
 {
     u16 i;
-    u8 val8;
+//    u8 val8;
     
     RF_Reset_Actif = 0;
     RST_RF = 1;

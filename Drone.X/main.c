@@ -38,7 +38,7 @@ int main(void) {
     ON_OFF_GPS = 0;
     ON_OFF_GPS_T = 0;   // active la sortie ON_OFF du GPS
     Delay_ms(50);
-    UART_GPS_Init();
+    //UART_GPS_Init();
     
     
     Delay_ms(500);
@@ -49,10 +49,11 @@ int main(void) {
             Interp(c);
             LED1 = 0;
         }
-        if (Mode_Urgence) {
+        /*if (Mode_Urgence) {
             GPS_Send_Off_Cmd();
         }
-        Accel_Loop();
+        Accel_Loop();*/
+        
     }
     
     return 0;

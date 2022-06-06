@@ -21,6 +21,7 @@ const Command Command_List[] = {
  
  {  "IWR"      ,I2C_Wr_Cmd},
  {  "IRD"      ,I2C_Rd_Cmd},
+ {  "IST"      ,I2C_Stress_Cmd},
     
  
  {  "GPSON"     ,GPS_Send_On_Pin_Cmd},

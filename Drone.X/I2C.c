@@ -21,7 +21,7 @@ uint8_t cmd_I2C_TODO = 0;
 
 void Init_I2C(void){
     //setting baud rate:
-    uint16_t Fscl = 20000;
+    uint16_t Fscl = 30000;
     uint16_t BRG = (((1/Fscl))*FCY/2)-2;
     I2C1BRG = BRG;
     
@@ -98,6 +98,7 @@ void Transmit_I2C_Loop(void){
             if (I2C1STATbits.ACKSTAT == 0) {
                 state_i2c++;
             } else {
+                printf("ACKError%d\n", state_i2c);
                 state_i2c = 30;
             }
             break;     
@@ -124,6 +125,7 @@ void Transmit_I2C_Loop(void){
                     state_i2c = 6;
                 }
             } else{
+                printf("ACKError%d\n", state_i2c);
                 state_i2c = 30;
             }
             break;  
@@ -162,6 +164,7 @@ void Transmit_I2C_Loop(void){
             if (I2C1STATbits.ACKSTAT == 0) {
                 state_i2c++;
             }else{
+                printf("ACKError%d\n", state_i2c);
                 state_i2c = 30;
             }
             break;     
@@ -258,8 +261,10 @@ void Transmit_I2C_Loop(void){
             break;
     }
     if (Old_state_i2c != state_i2c) {
-        printf("%d\n", state_i2c);
+        //printf("%d\n", state_i2c);
     }
+    
+    
 }
 
 uint8_t I2C_Done;
@@ -306,7 +311,7 @@ uint8_t I2C_Rd_Cmd(void){
     for (i = 0; i < 15; i ++) {
         I2C_Test_Data[i] = 6;
     }
-    Add_I2C_command(add, 1, nb_data, &I2C_Test_Data[0], &I2C_Test_Data[0], &I2C_Done);
+    Add_I2C_command(add, 0, nb_data, &I2C_Test_Data[0], &I2C_Test_Data[0], &I2C_Done);
     while (!I2C_Done) {
         Transmit_I2C_Loop();
     }
@@ -316,9 +321,44 @@ uint8_t I2C_Rd_Cmd(void){
     return 0;
 }
 
+uint8_t I2C_Stress_Mode = 0;
+uint8_t I2C_Stress_Done = 1;
+uint8_t I2C_Stress_Data[10] = {0}; 
+uint32_t I2C_Stress_Count = 0;
+uint32_t I2C_Stress_Timer = 0;
 
+void I2C_Stress_Loop (void) {
+    // mode 0 : repos
+    // 10 => 19 : write avec 1 à 10 data
+    // 20 => 29 : rd avec 1 à 10 data
+    if (I2C_Stress_Mode && I2C_Stress_Done) {
+        if ((I2C_Stress_Mode >= 10) && (I2C_Stress_Mode <= 19)) {
+            I2C_Stress_Done = 0;
+            I2C_Stress_Count += I2C_Stress_Mode - 9;
+            Add_I2C_command(0x20, I2C_Stress_Mode - 9, 0, &I2C_Stress_Data[0], NULL, &I2C_Stress_Done);
+            
+        } else if ((I2C_Stress_Mode >= 20) && (I2C_Stress_Mode <= 29)) {
+            I2C_Stress_Done = 0;
+            I2C_Stress_Count += I2C_Stress_Mode - 19;
+            Add_I2C_command(0x20, 0, I2C_Stress_Mode - 19, NULL, &I2C_Stress_Data[0], &I2C_Stress_Done);
+        }
+    }
+}
 
-
+uint8_t I2C_Stress_Cmd(void) {
+    float valf;
+    if (Get_Param_Float(&valf)){
+        printf("%ld in %ld\n", I2C_Stress_Count, (Timer_ms1 - I2C_Stress_Timer));
+        valf = 0.001 * (Timer_ms1 - I2C_Stress_Timer);
+        valf = I2C_Stress_Count / valf;
+        printf("%.3f\n", valf);
+    } else {
+        I2C_Stress_Mode = valf;
+        I2C_Stress_Timer = Timer_ms1;
+        I2C_Stress_Count = 0;
+    }
+    return 0;
+}
 
 
 
@@ -327,7 +367,8 @@ uint8_t Data_To_Send = 48; //truc au pif pour le premier test
 
 void Init_I2C(void){
     I2C1CONbits.IPMIEN = 0;
-    I2C1CONbits.STREN = 1;  // active la pause d'horloge
+    //I2C1CONbits.STREN = 1;  // active la pause d'horloge
+    I2C1CONbits.STREN = 0;
     
     //IEC1bits.SI2C1IE = 1; //I2C Slave Events interupt enable
     //IPC4bits.SI2C1IP = 0b001; //priority 1
@@ -348,20 +389,23 @@ uint32_t Last_Timer = 0;
 uint8_t Start_Detect = 0;
 uint8_t Stop_Detect = 0;
 
+uint32_t Nb_Rx = 0;
+uint32_t Nb_Tx = 0;
+
 void Gestion_I2C_Slave_Loop(void){
     uint8_t msg;//sert a vider les buffers
 
     if (Start_Detect != I2C1STATbits.S) {
         Start_Detect = I2C1STATbits.S;
         if (I2C1STATbits.S) {
-            printf("S\n");
+            //printf("%ld %ld\n", Nb_Rx, Nb_Tx);
             i2c_state = 2;
         }
     }
     if (Stop_Detect != I2C1STATbits.P) {
         Stop_Detect = I2C1STATbits.P;
         if (I2C1STATbits.P) {
-            printf("P\n");
+            //printf("P\n");
             i2c_state = 0;
         }
     }
@@ -371,7 +415,8 @@ void Gestion_I2C_Slave_Loop(void){
             if(I2CSTATbits.RBF){ //si le buffer de reception est plein
                 I2C1CONbits.ACKDT = 0; 
                 I2C1CONbits.ACKEN = 1;
-                I2C1CONbits.SCLREL = 1; //relache la ligne scl
+                I2C1STATbits.S = 0;
+                //I2C1CONbits.SCLREL = 1; //relache la ligne scl
                 if(!I2CSTATbits.D_A){ //si c'était une adresse
                     if (I2CSTATbits.R_W) { // en mode lecture pour le master, on va envoyer
                         i2c_state = 10;
@@ -381,7 +426,8 @@ void Gestion_I2C_Slave_Loop(void){
                     msg = I2C1RCV;//on vide la reception   
                 } else { //on est en lecture de data
                     msg = I2C1RCV;
-                    printf("msg: %d\n", msg);
+                    //printf("msg: %d\n", msg);
+                    Nb_Rx ++;
                 }
             }
             break;
@@ -396,8 +442,9 @@ void Gestion_I2C_Slave_Loop(void){
         case 11:
             IFS1bits.SI2C1IF = 0;
             I2C1TRN = Data_To_Send;
+            Nb_Tx ++;
             I2C1CONbits.SCLREL = 1; //relache la ligne scl
-            printf("d%d\n", (int)(Data_To_Send));
+            //printf("d%d\n", (int)(Data_To_Send));
             Data_To_Send ++;
             i2c_state++;
             break;
@@ -427,7 +474,7 @@ void Gestion_I2C_Slave_Loop(void){
     
     if (i2c_state != Old_i2c_state) {
         Old_i2c_state = i2c_state;
-        printf("%d,", (int)(i2c_state));
+        //printf("%d,", (int)(i2c_state));
         Last_Timer = Timer_ms1;
     }
     
@@ -445,6 +492,9 @@ uint8_t I2C_Wr_Cmd(void){
 }
 
 uint8_t I2C_Rd_Cmd(void){
+    return 0;
+}
+uint8_t I2C_Stress_Cmd(void) {
     return 0;
 }
 

@@ -49,7 +49,7 @@ void __attribute__((interrupt,auto_psv)) _T1Interrupt(void)
     
     Compteur_ms_1 ++;
 
-    ADC_Every_ms();
+    //ADC_Every_ms();
     
     IFS0bits.T1IF = 0;  // clear du flag
 }

@@ -61,7 +61,7 @@ void __attribute__((interrupt, auto_psv)) _U1TXInterrupt(void)
     while ((i_TX_Transmit != i_TX_PC_Buff) && (!U1STAbits.UTXBF)) {
         U1TXREG = TX_PC_Buff[i_TX_Transmit];
         i_TX_Transmit++;
-        if (i_TX_Transmit == UART_PC_SIZE_BUFF)
+        if (i_TX_Transmit >= UART_PC_SIZE_BUFF)
             i_TX_Transmit = 0;
     }
     
@@ -76,7 +76,7 @@ void __attribute__((interrupt, auto_psv)) _U1RXInterrupt(void)
     while (U1STAbits.URXDA) {      // tant que la FIFO de réception n'est pas vide
         RX_PC_Buff[i] = U1RXREG;
         i++;
-        if (i == UART_PC_SIZE_BUFF)
+        if (i >= UART_PC_SIZE_BUFF)
             i = 0;
     }
     i_RX_PC_Buff = i;
@@ -106,10 +106,10 @@ int write(int handle, void *buffer, unsigned int len)
 
 void Transmit_Char(u8 symbol) {
 
-    u8 i = i_TX_PC_Buff;
+    u16 i = i_TX_PC_Buff;
     TX_PC_Buff[i] = symbol;
     i++;
-    if (i == UART_PC_SIZE_BUFF) {
+    if (i >= UART_PC_SIZE_BUFF) {
         i = 0;
     }
     i_TX_PC_Buff = i;
@@ -128,7 +128,7 @@ u8 Get_Uart(u8 *c) {
     if (i_RX != i_RX_PC_Buff) { // si il y a qq chose dans le buffer
         *c = RX_PC_Buff[i_RX];
         i_RX++;
-        if (i_RX == UART_PC_SIZE_BUFF)
+        if (i_RX >= UART_PC_SIZE_BUFF)
             i_RX = 0;
         return 1;
     } else {

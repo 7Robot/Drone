@@ -27,10 +27,10 @@ int main(void) {
     AD1PCFGL = 0xFFFF;  // tout en numérique
     UART_PC_Init();
     Timer_Ms_Init();
-    ADC_Init();
+    //ADC_Init();
     Init_I2C();
     //Accel_Init();
-    SPI_Init();
+    //SPI_Init();
     
     
     LED1_T = 0;
@@ -41,7 +41,7 @@ int main(void) {
     //UART_GPS_Init();
     
     
-    Delay_ms(500);
+    //Delay_ms(500);
     printf("Running!\n");
     while (1) {
         if (Get_Uart(&c)) {

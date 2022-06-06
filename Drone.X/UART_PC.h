@@ -16,7 +16,7 @@
 
 #define BRGBAUDRATEPC (((FCY / BAUDRATEPC) / 16) - 1)
 
-#define UART_PC_SIZE_BUFF 300
+#define UART_PC_SIZE_BUFF 500
 
 void UART_PC_Init(void);
 //void Transmit_String(char *str);

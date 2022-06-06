@@ -26,6 +26,7 @@
     
 uint8_t I2C_Wr_Cmd(void);
 uint8_t I2C_Rd_Cmd(void);
+uint8_t I2C_Wr_Rd_Cmd(void);
 void I2C_Stress_Loop (void);
 uint8_t I2C_Stress_Cmd(void);
     
@@ -36,6 +37,7 @@ uint8_t I2C_Stress_Cmd(void);
     
 uint8_t I2C_Wr_Cmd(void);
 uint8_t I2C_Rd_Cmd(void);
+uint8_t I2C_Wr_Rd_Cmd(void);
 uint8_t I2C_Stress_Cmd(void);
 #endif
 

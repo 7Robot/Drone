@@ -540,4 +540,98 @@ uint8_t I2C_Stress_Cmd(void) {
     return 0;
 }
 
+void Init_I2C_int(void){
+    I2C1CONbits.IPMIEN = 0;
+    I2C1CONbits.STREN = 1;  // active la pause d'horloge
+    //I2C1CONbits.STREN = 0;
+    
+    IEC1bits.SI2C1IE = 1; //I2C Slave Events interupt enable
+    IPC4bits.SI2C1IP = 0b001; //priority 1
+    
+    I2C1ADD = 0x20; //adresse du slave
+    I2C1CONbits.A10M = 0; //adresse sur 7-bits
+    
+    I2C1CONbits.I2CEN = 1;
+    uint8_t poubelle = I2C1RCV; //on vide le buffer de reception au cas ou
+    
+}
+
+
+uint8_t Read_Write_status = 0;
+
+void __attribute__((interrupt,auto_psv)) _SI2C1Interrupt (void){
+    IFS1bits.SI2C1IF = 0;
+    if(Start_Detect != I2C1STATbits.S){
+        Start_Detect = I2C1STATbits.S;
+        i2c_state = 1;
+    }else if(Stop_Detect != I2C1STATbits.P){
+        Stop_Detect = I2C1STATbits.P;
+        i2c_state = 0;
+   
+    }else if(!I2C1STATbits.D_A){//si la dernière donnée reçut c'est une addresse
+        Read_Write_status = I2C1STATbits.R_W;
+        i2c_state = 2;
+    }else if(I2C1STATbits.D_A){//si la dernière donnée reçut est une data
+        i2c_state++;
+        
+    }else if(i2c_state == 12){
+        if(!I2C1STATbits.ACKSTAT){ //ack reçu du master donc on continue d'envoyer
+           i2c_state = 10;
+        }else if(I2C1STATbits.ACKSTAT){ //ack reçu du master donc on continue d'envoyer
+           i2c_state = 0; //nack reçut transmission finit on attend
+           Start_Detect = 0;
+        }
+    }
+}
+
+void Gestion_I2C_Slave_int_Loop(void){
+    uint8_t msg;
+    switch(i2c_state){
+        case 0:
+            //on ne fait rien dans cet état puisque le slave est en attente d'un start
+            break;
+        case 1:
+            //on ne fait rien ici on attend que l'adresse avec le bit de lecture/ecriture soit recu
+            break;
+        case 2: 
+            I2C1CONbits.ACKDT = 0; 
+            I2C1CONbits.ACKEN = 1;
+            I2C1CONbits.SCLREL = 1; //relache la ligne scl
+            if (Read_Write_status) { // en mode lecture pour le master, on va envoyer
+                msg = I2C1RCV;//on vide la reception
+                i2c_state = 10;
+            } else {
+                i2c_state = 20;  
+            }  
+            break;
+            
+            
+    /////////////////////////mode lecture pour master///////////////////////////        
+        case 10:
+            I2C1TRN = Data_To_Send;
+            I2C1CONbits.SCLREL = 1; //relache la ligne scl
+            Data_To_Send ++;
+            i2c_state++;
+            break;
+        case 11:
+            //on fait rien on attend l'interruption qui indique que la transmission c'est bien passé
+            break;   
+            
+    /////////////////////////mode ecriture pour master///////////////////////////        
+        case 20:
+            msg = I2C1RCV;//on vide la reception
+            i2c_state++;
+            break;
+        case 21:
+            //on fait rien
+            break;
+        case 22:
+            I2C1CONbits.ACKDT = 0; 
+            I2C1CONbits.ACKEN = 1;
+            I2C1CONbits.SCLREL = 1; //relache la ligne scl
+            i2c_state = 20;
+            break;
+    }
+}
+
 #endif

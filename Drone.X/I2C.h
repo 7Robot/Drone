@@ -1,7 +1,7 @@
 #ifndef __GESTION_I2C_H
 #define	__GESTION_I2C_H
 
-#define I2C_MASTER 1
+#define I2C_MASTER 0
 
 
 #if I2C_MASTER
@@ -34,6 +34,9 @@ uint8_t I2C_Stress_Cmd(void);
     #define SIZE_BUFF_I2C 5 
     void Init_I2C(void);  
     void Gestion_I2C_Slave_Loop(void);
+    
+    void Init_I2C_int(void);
+    void Gestion_I2C_Slave_int_Loop(void);
     
 uint8_t I2C_Wr_Cmd(void);
 uint8_t I2C_Rd_Cmd(void);

@@ -57,6 +57,9 @@ int main(void) {
         #if I2C_MASTER
         Transmit_I2C_Loop();
         I2C_Stress_Loop();
+        I2C_Discover_Loop();
+        Accel_Loop();
+        Alti_Loop();
         #else
         Gestion_I2C_Slave_Loop();
         #endif
@@ -65,3 +68,6 @@ int main(void) {
     
     return 0;
 }
+
+
+

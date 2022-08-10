@@ -1,5 +1,5 @@
-#ifndef __GESTION_I2C_H
-#define	__GESTION_I2C_H
+#ifndef __I2C_H
+#define	__I2C_H
 
 #define I2C_MASTER 1
 
@@ -11,7 +11,7 @@
         uint8_t nbr_byte_to_send;
         uint8_t nbr_byte_to_read;
         uint8_t *data_read;
-        uint8_t *data_send;
+        uint8_t *data_to_send;
         void *Done;
     }I2C_command;
 
@@ -29,6 +29,9 @@ uint8_t I2C_Rd_Cmd(void);
 uint8_t I2C_Wr_Rd_Cmd(void);
 void I2C_Stress_Loop (void);
 uint8_t I2C_Stress_Cmd(void);
+
+void I2C_Discover_Loop(void);
+uint8_t I2C_Discover_Cmd(void);
     
 #else
     #define SIZE_BUFF_I2C 5 

@@ -4,11 +4,8 @@
 
 void Timer_Ms_Init(void);
 
-void Delay_ms (u32 Delay_Time);
-void Set_Maxtime (u32 Val_Maxtime);
-u8 Get_Maxtime(void);
+void Delay_ms (u16 Delay_Time);
 
+extern volatile u16 Compteur_ms_1;
 
-//extern volatile u32 Maxtime;
-extern volatile u32 Compteur_ms_1;
 #endif

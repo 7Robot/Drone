@@ -441,7 +441,7 @@ uint8_t Data_To_Send = 48; //truc au pif pour le premier test
 uint8_t i2c_state = 0;
 uint8_t Last_i2c_state = 0;
 uint8_t Old_i2c_state = 0;
-uint32_t Last_Timer = 0;
+uint16_t Last_Timer = 0;
 
 uint8_t Start_Detect = 0;
 uint8_t Stop_Detect = 0;
@@ -451,129 +451,11 @@ uint32_t Nb_Tx = 0;
 
 uint8_t Read_Write_status = 0;
 
-/*
-
-void Init_I2C(void){
-    I2C1CONbits.IPMIEN = 0;
-    I2C1CONbits.STREN = 1;  // active la pause d'horloge
-    //I2C1CONbits.STREN = 0;
-    
-    //IEC1bits.SI2C1IE = 1; //I2C Slave Events interupt enable
-    //IPC4bits.SI2C1IP = 0b001; //priority 1
-    
-    I2C1ADD = 0x20; //adresse du slave
-    I2C1CONbits.A10M = 0; //adresse sur 7-bits
-    
-    I2C1CONbits.I2CEN = 1;
-    uint8_t poubelle = I2C1RCV; //on vide le buffer de reception au cas ou
-    
-  
-}
 
 
-
-void Gestion_I2C_Slave_Loop(void){
-    uint8_t msg;//sert a vider les buffers
-
-    if (Start_Detect != I2C1STATbits.S) {
-        Start_Detect = I2C1STATbits.S;
-        if (I2C1STATbits.S) {
-            //printf("S %ld %ld\n", Nb_Rx, Nb_Tx);
-            i2c_state = 2;
-        }
-    }
-    if (Stop_Detect != I2C1STATbits.P) {
-        Stop_Detect = I2C1STATbits.P;
-        if (I2C1STATbits.P) {
-            //printf("P\n");
-            i2c_state = 0;
-        }
-    }
-    
-    switch(i2c_state){         
-        case 2: //etat de reception
-            if(I2CSTATbits.RBF){ //si le buffer de reception est plein
-                I2C1CONbits.ACKDT = 0; 
-                I2C1CONbits.ACKEN = 1;
-                I2C1CONbits.SCLREL = 1; //relache la ligne scl
-                if(!I2CSTATbits.D_A){ //si c'était une adresse
-                    if (I2CSTATbits.R_W) { // en mode lecture pour le master, on va envoyer
-                        i2c_state = 10;
-                    } else {
-                        // sinon on reste ici pour recevoir
-                    }
-                    msg = I2C1RCV;//on vide la reception   
-                } else { //on est en lecture de data
-                    msg = I2C1RCV;
-                    //printf("msg: %d\n", msg);
-                    Nb_Rx ++;
-                }
-            }
-            break;
-            
-            
-    ///////////////////////// Ecriture ///////////////////////////////////////       
-        case 10:
-            if (!I2C1CONbits.SCLREL) {
-                i2c_state++;
-            }
-            break;
-        case 11:
-            IFS1bits.SI2C1IF = 0;
-            I2C1TRN = Data_To_Send;
-            Nb_Tx ++;
-            I2C1CONbits.SCLREL = 1; //relache la ligne scl
-            //printf("d%d\n", (int)(Data_To_Send));
-            Data_To_Send ++;
-            i2c_state++;
-            break;
-        case 12:
-            if(!I2C1STATbits.TBF){
-                i2c_state++;
-            }
-            break;
-        case 13: //si le buffer de transmission est vide
-            if(IFS1bits.SI2C1IF){
-                
-            ////// LA JE NE SAIS PAS SI CE REGISTRE EST MODIFIE OU SI JE DOIS JUSTE LIRE L42TAT DE LA LIGNE POUR VOIR SI IL Y A UN ACK OU UN NACK
-                
-                if(!I2C1STATbits.ACKSTAT){ //ack reçu du master donc on continue d'envoyer
-                    i2c_state = 11;
-                }else{
-                    i2c_state = 0; //nack reçut transmission finit on attend
-                    Start_Detect = 0;
-                }
-            }
-            break;            
-    ///////////////////////// Lecture ///////////////////////////////////////       
-        default:
-            i2c_state = 0;
-            break;
-            
-    }
-    
-    if (i2c_state != Old_i2c_state) {
-        Old_i2c_state = i2c_state;
-        //printf("%d,", (int)(i2c_state));
-        Last_Timer = Timer_ms1;
-    }
-    
-    if ((Timer_ms1 - Last_Timer) > 1000) {
-        if (i2c_state != 0) {
-            printf("Reset_I2C\n");
-            I2C1CONbits.I2CEN = 0;
-            Start_Detect = 0;
-            Stop_Detect = 0;
-            i2c_state = 0;
-            I2C1CONbits.I2CEN = 1;
-        }
-    }
-}
-
-
-*/
 
 uint8_t I2C_Wr_Cmd(void){
+    printf("I am Slave!\n");
     return 0;
 }
 
@@ -584,9 +466,11 @@ uint8_t I2C_Rd_Cmd(void){
     return 0;
 }
 uint8_t I2C_Wr_Rd_Cmd(void){
+    printf("I am Slave!\n");
     return 0;
 }
 uint8_t I2C_Stress_Cmd(void) {
+    printf("I am Slave!\n");
     return 0;
 }
 
@@ -654,61 +538,7 @@ void __attribute__((interrupt,auto_psv)) _SI2C1Interrupt (void){
 }
 
 void Gestion_I2C_Slave_Loop(void) {
-    /*uint8_t msg;
-    if (Last_i2c_state != i2c_state) {
-        printf("I2C S%d\n", i2c_state);
-        Last_i2c_state = i2c_state;
-    }
-    switch(i2c_state){
-        case 0:
-            //on ne fait rien dans cet état puisque le slave est en attente d'un start
-            break;
-        case 1:
-            //on ne fait rien ici on attend que l'adresse avec le bit de lecture/ecriture soit recu
-            break;
-        case 2: 
-            I2C1CONbits.ACKDT = 0; 
-            I2C1CONbits.ACKEN = 1;
-            I2C1CONbits.SCLREL = 1; //relache la ligne scl
-            if (Read_Write_status) { // en mode lecture pour le master, on va envoyer
-                msg = I2C1RCV;//on vide la reception
-                i2c_state = 10;
-            } else {
-                i2c_state = 20;  
-            }  
-            break;
-            
-            
-    /////////////////////////mode lecture pour master///////////////////////////        
-        case 10:
-            I2C1TRN = Data_To_Send;
-            I2C1CONbits.SCLREL = 1; //relache la ligne scl
-            Data_To_Send ++;
-            i2c_state++;
-            break;
-        case 11:
-            //on fait rien on attend l'interruption qui indique que la transmission c'est bien passé
-            break;   
-            
-    /////////////////////////mode ecriture pour master///////////////////////////        
-        case 20:
-            msg = I2C1RCV;//on vide la reception
-            i2c_state++;
-            break;
-        case 21:
-            //on fait rien
-            break;
-        case 22:
-            I2C1CONbits.ACKDT = 0; 
-            I2C1CONbits.ACKEN = 1;
-            I2C1CONbits.SCLREL = 1; //relache la ligne scl
-            i2c_state = 20;
-            break;
-    }
-    if (Last_i2c_state != i2c_state) {
-        printf("I2C S%d\n", i2c_state);
-        Last_i2c_state = i2c_state;
-    }*/
+    
 }
 
 

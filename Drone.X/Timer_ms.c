@@ -4,7 +4,6 @@
 #include "main.h"
 
 
-volatile u16 Delay_Var = 0;
 volatile u16 Timer_ms1 = 0;
 
 void Timer_Ms_Init(void)
@@ -18,8 +17,8 @@ void Timer_Ms_Init(void)
 
 void Delay_ms (u16 Delay_Time)
 {
-    Delay_Var = Delay_Time;
-    while (Delay_Var);
+    u16 Delay_Var = Timer_ms1;
+    while ((Delay_Var - Timer_ms1) < Delay_Time);
 }
 
 void __attribute__((interrupt,auto_psv)) _T1Interrupt(void)
@@ -31,8 +30,6 @@ void __attribute__((interrupt,auto_psv)) _T1Interrupt(void)
         i = 0;
     }
     
-    if (Delay_Var)
-        Delay_Var--;
     
     Timer_ms1 ++;
 

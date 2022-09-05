@@ -18,7 +18,7 @@ const Command Command_List[] = {
  //{  "TACCEL"    ,I2C_Try_Accel_Cmd},
 // {  "ACCEL"     ,Accel_Print_Cmd},
  
- {  "ALTI"      ,Alti_Cmd},
+ //{  "ALTI"      ,Alti_Cmd},
  
  
  {  "IWR"       ,I2C_Wr_Cmd},
@@ -26,7 +26,7 @@ const Command Command_List[] = {
  {  "IWRD"      ,I2C_Wr_Rd_Cmd},
  
  {  "IST"       ,I2C_Stress_Cmd},
- {  "I2CDISC"   ,I2C_Discover_Cmd},
+ //{  "I2CDISC"   ,I2C_Discover_Cmd},
  
     
  

@@ -1,7 +1,7 @@
 #ifndef __I2C_H
 #define	__I2C_H
 
-#define I2C_MASTER 1
+//#define I2C_MASTER 1
 
 
 #if I2C_MASTER

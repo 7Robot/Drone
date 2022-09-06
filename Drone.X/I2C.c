@@ -10,7 +10,9 @@ volatile uint8_t state_i2c = 0;
 
 uint16_t I2C_timer; //stockage du temps
 uint8_t I2C_Maxtimed = 0;
+uint8_t Maxtimed_Sate = 0;
 uint8_t I2C_Nacked = 0;
+uint8_t Nacked_State = 0;
 
 uint8_t I2C_i = 0;
 
@@ -24,12 +26,11 @@ uint8_t cmd_I2C_TODO = 0;
 
 void Init_I2C(void) {
     //setting baud rate:
-    uint16_t Fscl = 20000;
-    uint16_t BRG = (((1/Fscl))*FCY/2)-2;
+    uint16_t Fscl = 30000;
+    uint16_t BRG = (1.0/((float)(Fscl))) * (FCY/2) - 2;
     I2C1BRG = BRG;
     
-    I2C1CONbits.IPMIEN = 0;
-    
+    I2C1CONbits.I2CEN = 1;
     IEC1bits.MI2C1IE = 1; //I2C Master Events interupt enable
     IPC4bits.MI2C1IP = 0b001; //priority 1
     
@@ -48,12 +49,13 @@ void __attribute__((interrupt,auto_psv)) _MI2C1Interrupt (void) {
             if (!I2C1STATbits.ACKSTAT) {    // si il y a bien eu ACK du slave
                 if (I2C_i < Current_I2C_Cmd.nbr_byte_send) {    // tant qu'on a qqchose à envoyer, on envoie
                     I2C1TRN = Current_I2C_Cmd.data_send[I2C_i];
-                    I2C_timer = Timer_ms1;
                     I2C_i ++;
                 } else {
                     state_i2c = 9;
                 }
             } else {
+                I2C_Nacked = 1;
+                Nacked_State = state_i2c;
                 state_i2c = 30;
             }
         }
@@ -62,6 +64,8 @@ void __attribute__((interrupt,auto_psv)) _MI2C1Interrupt (void) {
             if (!I2C1STATbits.ACKSTAT) {    // si il y a bien eu ACK du slave
                 state_i2c += 2;
             } else {
+                I2C_Nacked = 1;
+                Nacked_State = state_i2c;
                 state_i2c = 30;
             }
         }
@@ -88,7 +92,6 @@ void __attribute__((interrupt,auto_psv)) _MI2C1Interrupt (void) {
             } else {
                 state_i2c = 19;
             }
-            I2C_timer = Timer_ms1;
         }
     } else if (state_i2c == 20) {
         if (!I2C1CONbits.PEN) {
@@ -110,24 +113,24 @@ void Add_I2C_command(uint8_t i2c_addr, uint8_t nbr_byte_send, uint8_t nbr_byte_r
 }
 
 void Transmit_I2C_Loop(void) {
-    switch (state_i2c){
+    switch (state_i2c) {
         case 0:
             if(cmd_I2C_TODO != cmd_I2C_DONE) {
                 IFS1bits.MI2C1IF = 0;
-                I2C1CONbits.I2CEN = 1;
                 Current_I2C_Cmd = Liste_I2C_Command[cmd_I2C_DONE];
+                I2C_timer = Timer_ms1;
                 state_i2c++;
             }
             break;
             
         case 1: //start event
             I2C1CONbits.SEN = 1; // Initiates the Start condition on the SDAx and SCLx pins
-            I2C_timer = Timer_ms1;
             state_i2c++;
             break;
         case 2:
-            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+            if ((Timer_ms1 - I2C_timer) > 30){ //max time
                 I2C_Maxtimed = 1;
+                Maxtimed_Sate = state_i2c;
                 state_i2c = 30; 
             }
             break;
@@ -135,15 +138,15 @@ void Transmit_I2C_Loop(void) {
             if (Current_I2C_Cmd.nbr_byte_send != 0) {
                 I2C1TRN = (Current_I2C_Cmd.i2c_addr << 1) + 0; // 7bits addr + R/W bit
                 I2C_i = 0;
-                I2C_timer = Timer_ms1;
                 state_i2c++;
             } else {
                 state_i2c = 11;
             }
             break;
         case 4:   // la c'est l'IT qui gere tout l'envoi
-            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+            if ((Timer_ms1 - I2C_timer) > 30){ //max time
                 I2C_Maxtimed = 1;
+                Maxtimed_Sate = state_i2c;
                 state_i2c = 30; 
             }
             break;
@@ -152,52 +155,52 @@ void Transmit_I2C_Loop(void) {
         case 9:
             if (Current_I2C_Cmd.nbr_byte_read != 0) {
                 I2C1CONbits.RSEN = 1; // ReStart
-                I2C_timer = Timer_ms1;
                 state_i2c++;
             } else {
                 state_i2c = 19;
             }
             break;
         case 10:
-            if ((Timer_ms1 - I2C_timer) > 10) { //max time
+            if ((Timer_ms1 - I2C_timer) > 30) { //max time
                 I2C_Maxtimed = 1;
+                Maxtimed_Sate = state_i2c;
                 state_i2c = 30; 
             }
             break;   
         case 11:
             I2C1TRN = (Current_I2C_Cmd.i2c_addr << 1) + 1; // 7bits addr + R/W bit
             I2C_i = 0;
-            I2C_timer = Timer_ms1;
             state_i2c ++;
             break;
         case 12: 
-            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+            if ((Timer_ms1 - I2C_timer) > 30){ //max time
                 I2C_Maxtimed = 1;
+                Maxtimed_Sate = state_i2c;
                 state_i2c = 30; 
             }
             break;
         //////////////////////////READ//////////////////////////////////////////    
         case 14:
             I2C1CONbits.RCEN = 1; //allow the master to receive data
-			I2C_timer = Timer_ms1;
             state_i2c ++;
             break;
         
         case 15:    // c'est l'IT qui gere la recepetion
         case 16:    // et l'envoi de l'acknoledge/Nack durant ces etats
-            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+            if ((Timer_ms1 - I2C_timer) > 30){ //max time
                 I2C_Maxtimed = 1;
+                Maxtimed_Sate = state_i2c;
                 state_i2c = 30; 
             }
             break;
         case 19:
             I2C1CONbits.PEN = 1;
             state_i2c ++;
-            I2C_timer = Timer_ms1;
             break;
         case 20:
-            if ((Timer_ms1 - I2C_timer) > 10){ //max time
+            if ((Timer_ms1 - I2C_timer) > 30){ //max time
                 I2C_Maxtimed = 1;
+                Maxtimed_Sate = state_i2c;
                 state_i2c = 30; 
             }
             break;
@@ -211,25 +214,44 @@ void Transmit_I2C_Loop(void) {
             if (cmd_I2C_DONE >= I2C_CMD_LIST_SIZE){
                 cmd_I2C_DONE = 0;  
             }
-            I2C1CONbits.I2CEN = 0;
+            
             if (I2C_Maxtimed) {
-                I2C_Maxtimed = 0;
                 state_i2c = 31;
+            } else if (I2C_Nacked) {
+                state_i2c = 32;
             } else {
                 state_i2c = 0;
             }
             break;
         case 31:
-            printf("I2C_Maxtimed\n");
+            printf("I2C_Maxtimed in %u\n", (int)(Maxtimed_Sate));
+            I2C_Maxtimed = 0;
+            state_i2c = 35;
+            break;
+        case 32:
+            printf("I2C_Nacked in %u\n", (int)(Nacked_State));
+            I2C_Nacked = 0;
+            state_i2c = 35;
+            break;
+            
+        case 35:
             I2C_timer = Timer_ms1;
+            I2C1CONbits.I2CEN = 0;
             I2C_SCL_PIN = 0;
             I2C_SCL_TRIS = 0;   // fabrique un coup d'horloge sur l'I2C
             state_i2c ++;
             break;
-        case 32:
+        case 36:
             if ((Timer_ms1 - I2C_timer) > 1) {
+                I2C_timer = Timer_ms1;
                 I2C_SCL_PIN = 1;
                 I2C_SCL_TRIS = 1;   // relache l'I2C
+                I2C1CONbits.I2CEN = 1;
+                state_i2c ++;
+            }
+            break;
+        case 37:
+            if ((Timer_ms1 - I2C_timer) > 1) {
                 state_i2c = 0;
             }
             break;
@@ -326,9 +348,9 @@ uint8_t I2C_Wr_Rd_Cmd(void){
 
 uint8_t I2C_Stress_Mode = 0;
 uint8_t I2C_Stress_Done = 1;
-uint8_t I2C_Stress_Data[10] = {0}; 
+uint8_t I2C_Stress_Data[12] = {0}; 
 uint32_t I2C_Stress_Count = 0;
-uint32_t I2C_Stress_Timer = 0;
+uint16_t I2C_Stress_Timer = 0;
 
 void I2C_Stress_Loop (void) {
     // mode 0 : repos
@@ -344,6 +366,11 @@ void I2C_Stress_Loop (void) {
             I2C_Stress_Done = 0;
             I2C_Stress_Count += I2C_Stress_Mode - 19;
             Add_I2C_command(0x20, 0, I2C_Stress_Mode - 19, NULL, &I2C_Stress_Data[0], &I2C_Stress_Done);
+        
+        } else if ((I2C_Stress_Mode >= 30) && (I2C_Stress_Mode <= 39)) {
+            I2C_Stress_Done = 0;
+            I2C_Stress_Count += 2*(I2C_Stress_Mode - 29);
+            Add_I2C_command(0x20, I2C_Stress_Mode - 29, I2C_Stress_Mode - 29, &I2C_Stress_Data[0], &I2C_Stress_Data[0], &I2C_Stress_Done);
         }
     }
 }
@@ -351,8 +378,8 @@ void I2C_Stress_Loop (void) {
 uint8_t I2C_Stress_Cmd(void) {
     float valf;
     if (Get_Param_Float(&valf)){
-        printf("%ld in %ld\n", I2C_Stress_Count, (Timer_ms1 - I2C_Stress_Timer));
-        valf = 0.001 * (Timer_ms1 - I2C_Stress_Timer);
+        printf("%lu in %u\n", I2C_Stress_Count, (uint16_t)(Timer_ms1 - I2C_Stress_Timer));
+        valf = 0.001 * (uint16_t)(Timer_ms1 - I2C_Stress_Timer);
         valf = I2C_Stress_Count / valf;
         printf("%.3f\n", valf);
     } else {

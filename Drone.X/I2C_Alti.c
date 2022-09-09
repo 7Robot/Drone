@@ -2,7 +2,7 @@
 
 
 
-#if I2C_MASTER
+#ifdef I2C_MASTER
 
 uint8_t crc4(uint16_t n_prom[]);
 

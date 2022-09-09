@@ -4,7 +4,7 @@
 
 
 
-#if I2C_MASTER
+#ifdef I2C_MASTER
 
 // accel add0 = gnd
 #define ACCEL_ADD 0x68      // x2 pour Write, x2+1 pour read

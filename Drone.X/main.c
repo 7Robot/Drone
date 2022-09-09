@@ -51,11 +51,10 @@ int main(void) {
         }
         /*if (Mode_Urgence) {
             GPS_Send_Off_Cmd();
-        }
-        Accel_Loop();*/
+        }*/
         
         #ifdef I2C_MASTER
-        Transmit_I2C_Loop();
+        Gestion_I2C_Master_Loop();
         I2C_Stress_Loop();
         I2C_Discover_Loop();
         Accel_Loop();

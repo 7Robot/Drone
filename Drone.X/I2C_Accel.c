@@ -1,9 +1,7 @@
 #include "main.h"
 
 
-#define Timer_ms1 Compteur_ms_1
-
-#if I2C_MASTER
+#ifdef I2C_MASTER
 
 
 

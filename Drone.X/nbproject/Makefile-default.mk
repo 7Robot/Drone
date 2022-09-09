@@ -57,17 +57,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c GPS.c SPI.c Interpreteur.c RF.c RF_Calib.c RF_Test.c
+SOURCEFILES_QUOTED_IF_SPACED=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c GPS.c SPI.c Interpreteur.c RF.c RF_Calib.c RF_Test.c I2C_Accel.c I2C_Alti.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o ${OBJECTDIR}/GPS.o ${OBJECTDIR}/SPI.o ${OBJECTDIR}/Interpreteur.o ${OBJECTDIR}/RF.o ${OBJECTDIR}/RF_Calib.o ${OBJECTDIR}/RF_Test.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/Config_bits.o.d ${OBJECTDIR}/interrupts.o.d ${OBJECTDIR}/traps.o.d ${OBJECTDIR}/Timer_ms.o.d ${OBJECTDIR}/Init_Clk.o.d ${OBJECTDIR}/UART_PC.o.d ${OBJECTDIR}/ADC.o.d ${OBJECTDIR}/I2C.o.d ${OBJECTDIR}/GPS.o.d ${OBJECTDIR}/SPI.o.d ${OBJECTDIR}/Interpreteur.o.d ${OBJECTDIR}/RF.o.d ${OBJECTDIR}/RF_Calib.o.d ${OBJECTDIR}/RF_Test.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o ${OBJECTDIR}/GPS.o ${OBJECTDIR}/SPI.o ${OBJECTDIR}/Interpreteur.o ${OBJECTDIR}/RF.o ${OBJECTDIR}/RF_Calib.o ${OBJECTDIR}/RF_Test.o ${OBJECTDIR}/I2C_Accel.o ${OBJECTDIR}/I2C_Alti.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/Config_bits.o.d ${OBJECTDIR}/interrupts.o.d ${OBJECTDIR}/traps.o.d ${OBJECTDIR}/Timer_ms.o.d ${OBJECTDIR}/Init_Clk.o.d ${OBJECTDIR}/UART_PC.o.d ${OBJECTDIR}/ADC.o.d ${OBJECTDIR}/I2C.o.d ${OBJECTDIR}/GPS.o.d ${OBJECTDIR}/SPI.o.d ${OBJECTDIR}/Interpreteur.o.d ${OBJECTDIR}/RF.o.d ${OBJECTDIR}/RF_Calib.o.d ${OBJECTDIR}/RF_Test.o.d ${OBJECTDIR}/I2C_Accel.o.d ${OBJECTDIR}/I2C_Alti.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o ${OBJECTDIR}/GPS.o ${OBJECTDIR}/SPI.o ${OBJECTDIR}/Interpreteur.o ${OBJECTDIR}/RF.o ${OBJECTDIR}/RF_Calib.o ${OBJECTDIR}/RF_Test.o
+OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/Config_bits.o ${OBJECTDIR}/interrupts.o ${OBJECTDIR}/traps.o ${OBJECTDIR}/Timer_ms.o ${OBJECTDIR}/Init_Clk.o ${OBJECTDIR}/UART_PC.o ${OBJECTDIR}/ADC.o ${OBJECTDIR}/I2C.o ${OBJECTDIR}/GPS.o ${OBJECTDIR}/SPI.o ${OBJECTDIR}/Interpreteur.o ${OBJECTDIR}/RF.o ${OBJECTDIR}/RF_Calib.o ${OBJECTDIR}/RF_Test.o ${OBJECTDIR}/I2C_Accel.o ${OBJECTDIR}/I2C_Alti.o
 
 # Source Files
-SOURCEFILES=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c GPS.c SPI.c Interpreteur.c RF.c RF_Calib.c RF_Test.c
+SOURCEFILES=main.c Config_bits.c interrupts.c traps.c Timer_ms.c Init_Clk.c UART_PC.c ADC.c I2C.c GPS.c SPI.c Interpreteur.c RF.c RF_Calib.c RF_Test.c I2C_Accel.c I2C_Alti.c
 
 
 
@@ -185,6 +185,18 @@ ${OBJECTDIR}/RF_Test.o: RF_Test.c  .generated_files/flags/default/3d8403b1e14e28
 	@${RM} ${OBJECTDIR}/RF_Test.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  RF_Test.c  -o ${OBJECTDIR}/RF_Test.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/RF_Test.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
+${OBJECTDIR}/I2C_Accel.o: I2C_Accel.c  .generated_files/flags/default/d5b75fc4da04f5166a434f86a1714d005865e0f8 .generated_files/flags/default/a733305486dba52bf1b2f0129eacaac696315869
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/I2C_Accel.o.d 
+	@${RM} ${OBJECTDIR}/I2C_Accel.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  I2C_Accel.c  -o ${OBJECTDIR}/I2C_Accel.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/I2C_Accel.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
+	
+${OBJECTDIR}/I2C_Alti.o: I2C_Alti.c  .generated_files/flags/default/4dde8af1d29f7e917ccf9be40e1ee1037cba40b3 .generated_files/flags/default/a733305486dba52bf1b2f0129eacaac696315869
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/I2C_Alti.o.d 
+	@${RM} ${OBJECTDIR}/I2C_Alti.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  I2C_Alti.c  -o ${OBJECTDIR}/I2C_Alti.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/I2C_Alti.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
+	
 else
 ${OBJECTDIR}/main.o: main.c  .generated_files/flags/default/bbd6f8f1291ea02b030768a6b90c80a59b61ab63 .generated_files/flags/default/a733305486dba52bf1b2f0129eacaac696315869
 	@${MKDIR} "${OBJECTDIR}" 
@@ -275,6 +287,18 @@ ${OBJECTDIR}/RF_Test.o: RF_Test.c  .generated_files/flags/default/b8322a3adda990
 	@${RM} ${OBJECTDIR}/RF_Test.o.d 
 	@${RM} ${OBJECTDIR}/RF_Test.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  RF_Test.c  -o ${OBJECTDIR}/RF_Test.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/RF_Test.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
+	
+${OBJECTDIR}/I2C_Accel.o: I2C_Accel.c  .generated_files/flags/default/4e4566bb14a57cd4b460a5c32e15c42f22a023da .generated_files/flags/default/a733305486dba52bf1b2f0129eacaac696315869
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/I2C_Accel.o.d 
+	@${RM} ${OBJECTDIR}/I2C_Accel.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  I2C_Accel.c  -o ${OBJECTDIR}/I2C_Accel.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/I2C_Accel.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
+	
+${OBJECTDIR}/I2C_Alti.o: I2C_Alti.c  .generated_files/flags/default/d748241ec47ac3e8af564a0cce713cd27b4a0b9a .generated_files/flags/default/a733305486dba52bf1b2f0129eacaac696315869
+	@${MKDIR} "${OBJECTDIR}" 
+	@${RM} ${OBJECTDIR}/I2C_Alti.o.d 
+	@${RM} ${OBJECTDIR}/I2C_Alti.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  I2C_Alti.c  -o ${OBJECTDIR}/I2C_Alti.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MP -MMD -MF "${OBJECTDIR}/I2C_Alti.o.d"        -g -omf=elf -DXPRJ_default=$(CND_CONF)  -no-legacy-libc  $(COMPARISON_BUILD)  -O0 -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"
 	
 endif
 

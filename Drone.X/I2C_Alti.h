@@ -4,7 +4,7 @@
 
 
 
-#if I2C_MASTER
+#ifdef I2C_MASTER
 
 
 // csb = gnd

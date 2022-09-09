@@ -4,7 +4,11 @@
 #include "main.h"
 
 
+<<<<<<< HEAD
 volatile u16 Timer_ms1 = 0;
+=======
+volatile u16 Compteur_ms_1 = 0;
+>>>>>>> master_test_martin
 
 void Timer_Ms_Init(void)
 {
@@ -17,8 +21,13 @@ void Timer_Ms_Init(void)
 
 void Delay_ms (u16 Delay_Time)
 {
+<<<<<<< HEAD
     u16 Delay_Var = Timer_ms1;
     while ((Delay_Var - Timer_ms1) < Delay_Time);
+=======
+    u16 Start_Time = Compteur_ms_1;
+    while ((Compteur_ms_1 - Start_Time) < Delay_Time);
+>>>>>>> master_test_martin
 }
 
 void __attribute__((interrupt,auto_psv)) _T1Interrupt(void)
@@ -29,7 +38,10 @@ void __attribute__((interrupt,auto_psv)) _T1Interrupt(void)
         LED2 = !LED2;
         i = 0;
     }
+<<<<<<< HEAD
     
+=======
+>>>>>>> master_test_martin
     
     Timer_ms1 ++;
 

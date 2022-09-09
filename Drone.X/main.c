@@ -42,7 +42,7 @@ int main(void) {
     
     
     //Delay_ms(500);
-    printf("Running!\n");
+    printf("Running! %s %s\n", __DATE__, __TIME__);
     while (1) {
         if (Get_Uart(&c)) {
             LED1 = 1;
@@ -54,7 +54,7 @@ int main(void) {
         }
         Accel_Loop();*/
         
-        #if I2C_MASTER
+        #ifdef I2C_MASTER
         Transmit_I2C_Loop();
         I2C_Stress_Loop();
         I2C_Discover_Loop();
